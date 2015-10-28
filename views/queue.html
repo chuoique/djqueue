@@ -1,0 +1,48 @@
+<!doctype html>
+<html ng-app="queueApp">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Queue</title>
+    <script>
+    _q = {
+      users: <%- users %>,
+      queue: <%- queue %>,
+      id: <%- id %>,
+      host: <%- host %>,
+      nowPlayingId: <%- nowPlayingId %>,
+      soundcloudClientId: ".......",
+      spotifyClientId: ".......",
+      googleKey: "......"
+    }
+    </script>
+  </head>
+  <body ng-controller="controllerNavigation">
+    
+    <div ng-view>
+    </div>
+
+    <script>
+      function googleApiClientReady() {
+          gapi.client.load('youtube', 'v3', onYouTubeApiLoad);
+      }
+
+      function onYouTubeApiLoad() {
+          gapi.client.setApiKey(_q.googleKey);
+      }
+    </script>
+    <script src="https://apis.google.com/js/client.js?onload=googleApiClientReady"></script>
+
+    <script src="/js/lib/socket.io-1.2.0.js"></script>
+    <script src="/js/lib/jquery-1.11.2.min.js"></script>
+    <script src="/js/lib/angular.min.js"></script>
+    <script src="/js/lib/angular-route.min.js"></script>
+
+    <script src="/js/queue/app.js"></script>
+    <script src="/js/queue/navigation-controller.js"></script>
+    <script src="/js/queue/queue-controller.js"></script>
+    <script src="/js/queue/search-controller.js"></script>
+  </body>
+</html>

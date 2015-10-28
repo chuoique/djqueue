@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Queue</title>
+    <script>
+    _q = {
+      id: <%- id %>,
+      host: <%- host %>
+    }
+    </script>
+    <script src="/js/lib/jquery-1.11.2.min.js"></script>
+    <script>
+    $(document).ready(function() {
+      if(localStorage['queueUsername']) {
+        window.location.href = _q.host + _q.id + '/queue';
+      }
+      $("#login").submit(function(event) {
+        localStorage['queueUsername'] = $("#name").val();
+        if(localStorage['queueUsername']) {
+          window.location.href = _q.host + _q.id + '/queue';
+        }
+        event.preventDefault();
+      });
+    });
+    </script>
+  </head>
+  <body id="login-body">
+    <form id="login">
+      <label for="name">Name</label>
+      <input type="text" id="name" value="">
+      <input type="submit" value="Join">
+    </form>
+  </body>
+</html>
