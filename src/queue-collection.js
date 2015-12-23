@@ -12,7 +12,7 @@ module.exports = function() {
         return;
       }
 
-      this.queues[id] = new Queue();
+      this.queues[id] = new Queue(id);
       callback(null, this.queues[id]);
     },
 

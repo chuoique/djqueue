@@ -1,11 +1,11 @@
 var _ = require('underscore');
 
-var Queue = function() {
+var Queue = function(queueId) {
     this.users = {};
     this.queue = [];
     this.nextUserId = 0;
     this.nextItemId = 0;
-    this.queueId = null;
+    this.queueId = queueId;
     this.timeout = null;
     this.nowPlayingId = '';
 };
