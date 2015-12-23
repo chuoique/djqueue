@@ -14,7 +14,7 @@ var setup = function(io, queues, config, apiKeys) {
       socket.join(_q.queueId);
       var channel = io.in(_q.queueId);
 
-      var user = {id: "u" + _q.uid++, username: ""};
+      var user = {id: "u" + _q.nextUserId++, username: ""};
       if(socket.handshake.query.queueIsUser) {
         user.username = socket.handshake.query.queueUsername;
         _q.users[user.id] = user;
@@ -41,7 +41,7 @@ var setup = function(io, queues, config, apiKeys) {
                 url: item.url,
                 userId: user.id,
                 username: forceUsername || user.username,
-                id: "q" + _q.qid++,
+                id: "q" + _q.nextItemId++,
                 name: item.name,
                 length: item.length,
                 artist: item.artist,

@@ -31,21 +31,39 @@ var setup = function(app, queues, config, apiKeys) {
     next();
   });
 
-  app.get('/', function(req, res) {
-    res.send('go to /queue-name to start your own queue!');
+  // don't include a front page
+  app.get('/', function(req, res, next) {
+    res.status(404);
+    res.send();
   });
 
   // spotify login api, redirect url
-  app.get('/spotify', function(req, res) {
+  app.get('/spotify', function(req, res, next) {
     res.locals.bootstrap = bootstrapString({host: config.host});
     res.render('spotify.html');
   });
 
+  // create a new queue with /create/id.
+  // todo: change this to a POST, link from main page
+  app.get('/create/:id', function(req, res, next) {
+    if(/[a-z0-9\-]+$/i.test(req.queueId)) {
+      queues.createQueue(req.queueId, function(err) {
+        if(err) {
+          next(err);
+          return;
+        }
+        res.redirect('/' + req.queueId);
+      });
+    } else {
+      next(new Error('invalid id'));
+    }
+  });
+
   // for the casting device
-  app.get('/:id/cast', function(req, res) {
+  app.get('/:id/cast', function(req, res, next) {
     getQueueData(queues, config, apiKeys, req.queueId, function(err, bootstrapData) {
       if(err) {
-        next(err);
+        next(); // 404
         return;
       }
 
@@ -55,10 +73,10 @@ var setup = function(app, queues, config, apiKeys) {
   });
 
   // for the queue management devices
-  app.get('/:id/queue', function(req, res) {
+  app.get('/:id/queue', function(req, res, next) {
     getQueueData(queues, config, apiKeys, req.queueId, function(err, bootstrapData) {
       if(err) {
-        next(err);
+        next(); // 404
         return;
       }
 
@@ -67,18 +85,11 @@ var setup = function(app, queues, config, apiKeys) {
     });
   });
 
-  // reloads all data, in case a device missed some of the socket data
-  app.get('/:id/reload', function (req, res) {
-    queues.getQueue(req.queueId, function(err, queue) {
-      res.json({queue: queue.queue, users: queue.users, nowPlayingId: queue.nowPlayingId});
-    });
-  });
-
   // login page where queue management devices can enter their name
-  app.get('/:id', function (req, res) {
+  app.get('/:id', function (req, res, next) {
     getQueueData(queues, config, apiKeys, req.queueId, function(err, bootstrapData) {
       if(err) {
-        next(err);
+        next(); // 404
         return;
       }
 
@@ -88,13 +99,13 @@ var setup = function(app, queues, config, apiKeys) {
   });
 
   // 404 handler
-  app.use(function(req, res) {
+  app.use(function(req, res, next) {
     res.status(404);
     res.send();
   });
 
   // 500 handler
-  app.use(function(req, res, err) {
+  app.use(function(err, req, res, next) {
     res.status(500);
     res.send();
   });
