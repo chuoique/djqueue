@@ -5,12 +5,11 @@ var io = require('socket.io')(http);
 var ejs = require('ejs');
 var _ = require('underscore');
 
+var apiKeys = require('./api-keys');
+var config = require('./config');
+
 app.set('views', __dirname + '/views');
 app.engine('html', ejs.renderFile);
-
-host = 'http://localhost:8080/';
-port = 8080;
-passwd = 'abc';
 
 var _q = {
     users: {},
@@ -185,7 +184,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/set-url', function(req, res) {
-    if(req.query.p != passwd || req.query.u === undefined) {
+    if(req.query.p != config.passwd || req.query.u === undefined) {
         res.status(404);
         res.send();
     } else {
@@ -202,7 +201,7 @@ app.get('/set-url', function(req, res) {
 });
 
 app.get('/spotify', function (req, res) {
-    res.locals.host = JSON.stringify(host);
+    res.locals.host = JSON.stringify(config.host);
     res.render('spotify.html');
 });
 
@@ -216,7 +215,10 @@ app.get('/:id/cast', function (req, res) {
     res.locals.queue = JSON.stringify(_q.queue);
     res.locals.nowPlayingId = JSON.stringify(_q.nowPlayingId);
     res.locals.id = JSON.stringify(_q.id);
-    res.locals.host = JSON.stringify(host);
+    res.locals.host = JSON.stringify(config.host);
+    res.locals.spotify = JSON.stringify(apiKeys.spotify);
+    res.locals.soundcloud = JSON.stringify(apiKeys.soundcloud);
+    res.locals.youtube = JSON.stringify(apiKeys.youtube);
     res.render('cast.html');
 });
 
@@ -225,7 +227,10 @@ app.get('/:id/queue', function (req, res) {
     res.locals.queue = JSON.stringify(_q.queue);
     res.locals.nowPlayingId = JSON.stringify(_q.nowPlayingId);
     res.locals.id = JSON.stringify(_q.id);
-    res.locals.host = JSON.stringify(host);
+    res.locals.host = JSON.stringify(config.host);
+    res.locals.spotify = JSON.stringify(apiKeys.spotify);
+    res.locals.soundcloud = JSON.stringify(apiKeys.soundcloud);
+    res.locals.google = JSON.stringify(apiKeys.google);
     res.render('queue.html');
 });
 
@@ -235,7 +240,10 @@ app.get('/:id/reload', function (req, res) {
 
 app.get('/:id', function (req, res) {
     res.locals.id =  JSON.stringify(_q.id);
-    res.locals.host = JSON.stringify(host);
+    res.locals.host = JSON.stringify(config.host);
+    res.locals.spotify = JSON.stringify(apiKeys.spotify);
+    res.locals.soundcloud = JSON.stringify(apiKeys.soundcloud);
+    res.locals.google = JSON.stringify(apiKeys.google);
     res.render('login.html');
 });
 
@@ -246,6 +254,6 @@ app.use(function(req, res) {
     res.send();
 });
 
-http.listen(port, function () {
+http.listen(config.port, function () {
 
 });
