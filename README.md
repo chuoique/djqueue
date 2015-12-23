@@ -1,2 +1,2 @@
-![](/search.png?raw=true "Searching")
-![](/cast.png?raw=true "Casting")
+![](/screenshots/search.png?raw=true "Searching")
+![](/screenshots/cast.png?raw=true "Casting")
