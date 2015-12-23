@@ -12,8 +12,8 @@ app.engine('html', ejs.renderFile);
 app.use(express.static(__dirname + '/public'));
 
 // collection of queues, accessed by requesting example.com/queueId
-var queues = require('./src/queue-collection')();
-
+var QueueCollection = require('./src/queue-collection');
+var queues = new QueueCollection();
 require('./src/route').setup(app, queues, config, apiKeys);
 require('./src/socket').setup(io, queues, config, apiKeys);
 

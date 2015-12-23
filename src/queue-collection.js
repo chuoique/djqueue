@@ -1,28 +1,28 @@
 var Queue = require('./queue');
 
-module.exports = function() {
-  return {
-    queues: {},
-    
-    // exposed as async methods, thinking of using redis at some point instead
-    // of storing data in memory, to allow for multiple processes.
-    createQueue: function(id, callback) {
-      if(this.queues[id] !== undefined) {
-        callback(new Error('already exists'));
-        return;
-      }
+var QueueCollection = function() {
+  this.queues = {};
+}
 
-      this.queues[id] = new Queue(id);
-      callback(null, this.queues[id]);
-    },
+// exposed as async methods, thinking of using redis at some point instead
+// of storing data in memory, to allow for multiple processes.
+QueueCollection.prototype.createQueue = function(id, callback) {
+  if(this.queues[id] !== undefined) {
+    callback(new Error('already exists'));
+    return;
+  }
 
-    getQueue: function(id, callback) {
-      if(this.queues[id] === undefined) {
-        callback(new Error('invalid id'));
-        return;
-      }
-
-      callback(null, this.queues[id]);
-    }
-  }; 
+  this.queues[id] = new Queue(id);
+  callback(null, this.queues[id]);
 };
+
+QueueCollection.prototype.getQueue = function(id, callback) {
+  if(this.queues[id] === undefined) {
+    callback(new Error('invalid id'));
+    return;
+  }
+
+  callback(null, this.queues[id]);
+};
+
+module.exports = QueueCollection;
