@@ -84,10 +84,10 @@ var setup = function(app, queues, config, apiKeys) {
   });
 
   // 500 handler
-  /*app.use(function(err, req, res, next) {
+  app.use(function(err, req, res, next) {
     res.status(500);
     res.send();
-  });*/
+  });
 };
 
 module.exports.setup = setup;
