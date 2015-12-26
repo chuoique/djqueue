@@ -1,71 +1,71 @@
 <div id="search-wrap">
-    <a href="#/" id="back"><i class="fa fa-bars"></i></a>
-    <form ng-submit="search('spotify-song')">
-        <input type="text" ng-model="searchText" id="search" ng-focus="focusSearch()">
-    </form>
+  <a id="back" ng-click="navigationController.navigateQueue()"><i class="fa fa-bars"></i></a>
+  <form ng-submit="searchController.search('spotify-song')">
+    <input type="text" ng-model="searchController.searchText" id="search" ng-focus="searchController.focusSearch()">
+  </form>
 </div>
+
 <div id="search-button-wrap" style="margin-top:60px">
-    <p>
-        <span>Song</span>
-        <!--<button ng-click="search('recent-song')"><i class="fa fa-repeat"></i></button>-->
-        <button ng-click="search('soundcloud-song')"><i class="fa fa-soundcloud"></i></button>
-        <button ng-click="search('youtube-video')"><i class="fa fa-youtube-play"></i></button>
-        <button ng-click="search('spotify-song')"><i class="fa fa-spotify"></i></button>
-    </p>
-    <p>
-        <span>Playlist</span>
-        <button ng-click="search('soundcloud-playlist')"><i class="fa fa-soundcloud"></i></button>
-        <button ng-click="search('youtube-playlist')"><i class="fa fa-youtube-play"></i></button>
-        <button ng-click="search('spotify-playlist')"><i class="fa fa-spotify"></i></button>
-    </p>
-    <p>
-        <span>Album</span>
-        <button ng-click="search('spotify-album')"><i class="fa fa-spotify"></i></button>
-    </p>
+  <p>
+    <span>Song</span>
+    <button ng-click="searchController.search('soundcloud-song')"><i class="fa fa-soundcloud"></i></button>
+    <button ng-click="searchController.search('youtube-video')"><i class="fa fa-youtube-play"></i></button>
+    <button ng-click="searchController.search('spotify-song')"><i class="fa fa-spotify"></i></button>
+  </p>
+  <p>
+    <span>Playlist</span>
+    <button ng-click="searchController.search('soundcloud-playlist')"><i class="fa fa-soundcloud"></i></button>
+    <button ng-click="searchController.search('youtube-playlist')"><i class="fa fa-youtube-play"></i></button>
+    <button ng-click="searchController.search('spotify-playlist')"><i class="fa fa-spotify"></i></button>
+  </p>
+  <p>
+    <span>Album</span>
+    <button ng-click="searchController.search('spotify-album')"><i class="fa fa-spotify"></i></button>
+  </p>
 </div>
 
 <div style="margin-top:240px"></div>
 
-<ul id="queue" ng-if="!loading">
-    <li ng-if="searchPageHref || pageToken || nextPageHref || nextPageToken">
-        <p class="queue-buttons" style="margin-top: -10px">
-            <button ng-if="searchPageHref || pageToken" ng-click="pageBack()"><i class="fa fa-arrow-left"></i></button>
-            <button ng-if="nextPageHref || nextPageToken" ng-click="pageForward()"><i class="fa fa-arrow-right"></i></button>
-        </p>
-        <div style="clear:both"></div>
-    </li>
-    <li ng-repeat="result in searchResults" ng-class="{playing: result.added}">
-        <p class="queue-name">{{result.name}}</p>
+<ul id="queue" ng-if="!searchController.loading">
+  <li ng-if="searchController.searchPageHref || searchController.pageToken || searchController.nextPageHref || searchController.nextPageToken">
+    <p class="queue-buttons" style="margin-top: -10px">
+      <button ng-if="searchController.searchPageHref || searchController.pageToken" ng-click="searchController.pageBack()"><i class="fa fa-arrow-left"></i></button>
+      <button ng-if="searchController.nextPageHref || searchController.nextPageToken" ng-click="searchController.pageForward()"><i class="fa fa-arrow-right"></i></button>
+    </p>
+    <div style="clear:both"></div>
+  </li>
+  <li ng-repeat="result in searchController.searchResults" ng-class="{playing: result.added}">
+    <p class="queue-name">{{result.name}}</p>
 
-        <p class="queue-buttons" ng-if="searchType=='spotify-song' || searchType=='soundcloud-song' || searchType=='spotify-album-song' || searchType=='spotify-playlist-song' || searchType=='soundcloud-playlist-song'">
-            <button ng-click="addQueue('now', result)"><i class="fa fa-play"></i></button>
-            <button ng-click="addQueue('next', result)"><i class="fa fa-indent"></i></button>
-            <button ng-click="addQueue('last', result)"><i class="fa fa-angle-double-down"></i></button>
-        </p>
+    <p class="queue-buttons" ng-if="searchController.searchType=='spotify-song' || searchController.searchType=='soundcloud-song' || searchController.searchType=='spotify-album-song' || searchController.searchType=='spotify-playlist-song' || searchController.searchType=='soundcloud-playlist-song'">
+      <button ng-click="searchController.addQueue('now', result)"><i class="fa fa-play"></i></button>
+      <button ng-click="searchController.addQueue('next', result)"><i class="fa fa-indent"></i></button>
+      <button ng-click="searchController.addQueue('last', result)"><i class="fa fa-angle-double-down"></i></button>
+    </p>
 
-        <p class="queue-buttons" style="display:block" ng-if="searchType=='soundcloud-playlist'"><button ng-click="viewSoundcloudPlaylist(result)"><i class="fa fa-list"></i></button></p>
+    <p class="queue-buttons" style="display:block" ng-if="searchController.searchType=='soundcloud-playlist'"><button ng-click="searchController.viewSoundcloudPlaylist(result)"><i class="fa fa-list"></i></button></p>
 
-        <p class="queue-buttons" style="display:block" ng-if="searchType=='spotify-playlist'"><button ng-click="viewSpotifyPlaylist(result)"><i class="fa fa-list"></i></button></p>
+    <p class="queue-buttons" style="display:block" ng-if="searchController.searchType=='spotify-playlist'"><button ng-click="searchController.viewSpotifyPlaylist(result)"><i class="fa fa-list"></i></button></p>
 
-        <p class="queue-buttons" style="display:block" ng-if="searchType=='spotify-album'"><button ng-click="viewSpotifyAlbum(result)"><i class="fa fa-list"></i></button></p>
+    <p class="queue-buttons" style="display:block" ng-if="searchController.searchType=='spotify-album'"><button ng-click="searchController.viewSpotifyAlbum(result)"><i class="fa fa-list"></i></button></p>
 
-        <p class="queue-buttons" style="display:block" ng-if="searchType=='youtube-playlist'"><button ng-click="viewYoutubePlaylist(result)"><i class="fa fa-list"></i></button></p>
+    <p class="queue-buttons" style="display:block" ng-if="searchController.searchType=='youtube-playlist'"><button ng-click="searchController.viewYoutubePlaylist(result)"><i class="fa fa-list"></i></button></p>
 
-        <p class="queue-buttons" style="display:block" ng-if="searchType=='youtube-video' || searchType=='youtube-playlist-item'">
-            <button ng-click="addYoutubeQueue('now', result)"><i class="fa fa-play"></i></button>
-            <button ng-click="addYoutubeQueue('next', result)"><i class="fa fa-indent"></i></button>
-            <button ng-click="addYoutubeQueue('last', result)"><i class="fa fa-angle-double-down"></i></button>
-        </p>
+    <p class="queue-buttons" style="display:block" ng-if="searchController.searchType=='youtube-video' || searchController.searchType=='youtube-playlist-item'">
+      <button ng-click="searchController.addYoutubeQueue('now', result)"><i class="fa fa-play"></i></button>
+      <button ng-click="searchController.addYoutubeQueue('next', result)"><i class="fa fa-indent"></i></button>
+      <button ng-click="searchController.addYoutubeQueue('last', result)"><i class="fa fa-angle-double-down"></i></button>
+    </p>
 
-        <p class="queue-artist"><span class="artist">{{result.artist}}</span></p>
-    </li>
-    <li ng-if="searchPageHref || pageToken || nextPageHref || nextPageToken">
-        <p class="queue-buttons" style="margin-top: -10px">
-            <button ng-if="searchPageHref || pageToken" ng-click="pageBack()"><i class="fa fa-arrow-left"></i></button>
-            <button ng-if="nextPageHref || nextPageToken" ng-click="pageForward()"><i class="fa fa-arrow-right"></i></button>
-        </p>
-        <div style="clear:both"></div>
-    </li>
+    <p class="queue-artist"><span class="artist">{{result.artist}}</span></p>
+  </li>
+  <li ng-if="searchController.searchPageHref || searchController.pageToken || searchController.nextPageHref || searchController.nextPageToken">
+    <p class="queue-buttons" style="margin-top: -10px">
+      <button ng-if="searchController.searchPageHref || searchController.pageToken" ng-click="searchController.pageBack()"><i class="fa fa-arrow-left"></i></button>
+      <button ng-if="searchController.nextPageHref || searchController.nextPageToken" ng-click="searchController.pageForward()"><i class="fa fa-arrow-right"></i></button>
+    </p>
+    <div style="clear:both"></div>
+  </li>
 </ul>
 
-<h3 ng-if="loading">loading...</h3>
+<h3 ng-if="searchController.loading">loading...</h3>

@@ -1,33 +1,28 @@
 <!doctype html>
-<html ng-app="queueApp">
+<html ng-app="queue">
   <head>
     <meta charset="utf-8">
+    <base href="<%= base %>">
     <link rel="stylesheet" href="/css/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/app.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Queue</title>
-    <script>
-    _q = <%- bootstrap %>
-    </script>
+    <title>djQueue</title>
+    <script>_q = <%- bootstrap %>;</script>
   </head>
-  <body ng-controller="controllerNavigation">
-    
-    <div ng-view>
-    </div>
-
+  <body ng-controller="NavigationController as navigationController">
+    <div ng-view></div>
     <script>
       function googleApiClientReady() {
-          gapi.client.load('youtube', 'v3', onYouTubeApiLoad);
+        gapi.client.load('youtube', 'v3', onYouTubeApiLoad);
       }
-
       function onYouTubeApiLoad() {
-          gapi.client.setApiKey(_q.googleKey);
+        gapi.client.setApiKey(_q.googleKey);
       }
     </script>
     <script src="https://apis.google.com/js/client.js?onload=googleApiClientReady"></script>
 
     <script src="/js/lib/socket.io.js"></script>
-    <script src="/js/lib/jquery-1.11.2.min.js"></script>
+    <script src="/js/lib/jquery-1.11.3.min.js"></script>
     <script src="/js/lib/angular.min.js"></script>
     <script src="/js/lib/angular-route.min.js"></script>
 

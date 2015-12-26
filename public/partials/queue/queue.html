@@ -1,17 +1,21 @@
-<p id="search-button"><a class="search-link" href="#/search"><i class="fa fa-search"></i></a><button ng-click="prevTrack()"><i class="fa fa-step-backward"></i></button><button ng-click="nextTrack()"><i class="fa fa-step-forward"></i></button></p>
+<p id="search-button">
+  <a class="search-link" ng-click="navigationController.navigateSearch()"><i class="fa fa-search"></i></a>
+  <button ng-click="queueController.prevTrack()"><i class="fa fa-step-backward"></i></button>
+  <button ng-click="queueController.nextTrack()"><i class="fa fa-step-forward"></i></button>
+</p>
 
 <ul id="queue">
-    <li ng-repeat="item in queue" ng-class="{playing: nowPlayingId == item.id}">
-        <p class="username">{{item.username}}</p>
-
-        <p class="queue-name">{{item.name}}</p>
-        
-        <p class="queue-buttons" style="display:block">
-            <button ng-click="playQueue('here', item)"><i class="fa fa-play"></i></button>
-            <button ng-click="playQueue('next', item)"><i class="fa fa-indent"></i></button>
-            <button ng-click="removeQueue(item)"><i class="fa fa-times"></i></button>
-        </p>
-
-        <p class="queue-artist"><span class="icon"><i class="fa {{item.icon}}"></i></span><span class="artist">{{item.artist}}</span></p>
-    </li>
+  <li ng-repeat="item in queueController.queue" ng-class="{playing: queueController.nowPlayingId == item.id}">
+    <p class="username">{{item.username}}</p>
+    <p class="queue-name">{{item.name}}</p>
+    <p class="queue-buttons" style="display:block">
+      <button ng-click="queueController.playQueue('here', item)"><i class="fa fa-play"></i></button>
+      <button ng-click="queueController.playQueue('next', item)"><i class="fa fa-indent"></i></button>
+      <button ng-click="queueController.removeQueue(item)"><i class="fa fa-times"></i></button>
+    </p>
+    <p class="queue-artist">
+      <span class="icon"><i class="fa {{item.icon}}"></i></span>
+      <span class="artist">{{item.artist}}</span>
+    </p>
+  </li>
 </ul>

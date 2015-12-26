@@ -1,38 +1,37 @@
-var module = angular.module('moduleControllerSearch', [
-]);
-
-module.controller('controllerSearch', ['$scope', '$location', '$http',
-  function($scope, $location, $http) {
+angular.module('queueSearch', [])
+.controller('SearchController', ['$location', '$http',
+  function($location, $http) {
+    var controller = this;
     var searchParams = $location.search();
-    $scope.searchText = searchParams.q || "";
-    $scope.searchType = searchParams.t || "";
-    $scope.searchHref = searchParams.h;
-    $scope.searchPageHref = searchParams.ph;
-    $scope.searchId = searchParams.id || "";
-    $scope.pageToken = searchParams.pt;
-    $scope.pageOffset = searchParams.p || 0;
-    $scope.searchResults = [];
+    controller.searchText = searchParams.q || "";
+    controller.searchType = searchParams.t || "";
+    controller.searchHref = searchParams.h;
+    controller.searchPageHref = searchParams.ph;
+    controller.searchId = searchParams.id || "";
+    controller.pageToken = searchParams.pt;
+    controller.pageOffset = searchParams.p || 0;
+    controller.searchResults = [];
 
-    $scope.nextPageHref = "";
-    $scope.nextPageToken = "";
+    controller.nextPageHref = "";
+    controller.nextPageToken = "";
 
-    if($scope.searchType) {
-        $scope.loading = true;
+    if(controller.searchType) {
+        controller.loading = true;
 
-        if($scope.searchType == 'spotify-song') {
+        if(controller.searchType == 'spotify-song') {
             $http({
-                url: $scope.searchPageHref || 'https://api.spotify.com/v1/search',
+                url: controller.searchPageHref || 'https://api.spotify.com/v1/search',
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : {
+                params: controller.searchPageHref ? undefined : {
                     type: 'track',
-                    q: $scope.searchText,
+                    q: controller.searchText,
                     limit: 50,
                     offset: 0
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.tracks.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.name,
                         url: value.external_urls.spotify,
                         length: value.duration_ms,
@@ -40,22 +39,22 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                         icon: "fa-spotify"
                     });
                 });
-                $scope.nextPageHref = data.tracks.next;
+                controller.nextPageHref = data.tracks.next;
             });
         }
 
-        else if($scope.searchType == 'spotify-album-song') {
+        else if(controller.searchType == 'spotify-album-song') {
             $http({
-                url: $scope.searchPageHref || $scope.searchHref,
+                url: controller.searchPageHref || controller.searchHref,
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : {
+                params: controller.searchPageHref ? undefined : {
                     limit: 50,
                     offset: 0
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.name,
                         artist: value.artists[0].name,
                         url: value.external_urls.spotify,
@@ -63,24 +62,24 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                         icon: "fa-spotify"
                     });
                 });
-                $scope.nextPageHref = data.next;
+                controller.nextPageHref = data.next;
             });
         }
 
-        else if($scope.searchType == 'spotify-playlist-song') {
+        else if(controller.searchType == 'spotify-playlist-song') {
             $http({
-                url: $scope.searchPageHref || $scope.searchHref,
+                url: controller.searchPageHref || controller.searchHref,
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : {
+                params: controller.searchPageHref ? undefined : {
                     limit: 50,
                     offset: 0
                 }, headers: {
                     'Authorization': 'Bearer ' + localStorage['spotifyToken']
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.track.name,
                         artist: value.track.artists[0].name,
                         url: value.track.external_urls.spotify,
@@ -88,33 +87,33 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                         icon: "fa-spotify"
                     });
                 });
-                $scope.nextPageHref = data.next;
+                controller.nextPageHref = data.next;
             });
         }
 
-        else if($scope.searchType == 'spotify-album') {
+        else if(controller.searchType == 'spotify-album') {
             $http({
-                url: $scope.searchPageHref || 'https://api.spotify.com/v1/search',
+                url: controller.searchPageHref || 'https://api.spotify.com/v1/search',
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : {
+                params: controller.searchPageHref ? undefined : {
                     type: 'album',
-                    q: $scope.searchText,
+                    q: controller.searchText,
                     limit: 50,
                     offset: 0
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.albums.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.name,
                         api: value.href
                     });
                 });
-                $scope.nextPageHref = data.albums.next;
+                controller.nextPageHref = data.albums.next;
             });
         }
 
-        else if($scope.searchType == 'spotify-playlist') {
+        else if(controller.searchType == 'spotify-playlist') {
             if(localStorage['spotifyToken'] && new Date() < Date.parse(localStorage['spotifyExpire'])) {
                 $http({
                     url: 'https://api.spotify.com/v1/me',
@@ -125,9 +124,9 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                     }
                 }).success(function(data) {
                     $http({
-                        url: $scope.searchPageHref || 'https://api.spotify.com/v1/users/'+data.id+'/playlists',
+                        url: controller.searchPageHref || 'https://api.spotify.com/v1/users/'+data.id+'/playlists',
                         method: 'GET',
-                        params: $scope.searchPageHref ? undefined : {
+                        params: controller.searchPageHref ? undefined : {
                             "public": "null",
                             limit: 50,
                             offset: 0
@@ -136,14 +135,14 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                           'Authorization': 'Bearer ' + localStorage['spotifyToken']
                         }
                     }).success(function(data) {
-                        $scope.loading = false;
+                        controller.loading = false;
                         $.each(data.items, function(index, value) {
-                            $scope.searchResults.push({
+                            controller.searchResults.push({
                                 name: value.name,
                                 api: value.tracks.href
                             });
                         });
-                        $scope.nextPageHref = data.next;
+                        controller.nextPageHref = data.next;
                     });
                 });
             } else {
@@ -156,20 +155,20 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
             }
         }
 
-        else if($scope.searchType == 'soundcloud-song') {
+        else if(controller.searchType == 'soundcloud-song') {
             $http({
-                url: $scope.searchPageHref || 'http://api.soundcloud.com/tracks',
+                url: controller.searchPageHref || 'http://api.soundcloud.com/tracks',
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : {
-                    q: $scope.searchText,
+                params: controller.searchPageHref ? undefined : {
+                    q: controller.searchText,
                     client_id: _q.soundcloudClientId,
                     limit: 50,
                     linked_partitioning: 1
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.collection, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.title,
                         url: value.permalink_url,
                         length: value.duration,
@@ -177,23 +176,23 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                         icon: "fa-soundcloud"
                     });
                 });
-                $scope.nextPageHref = data.next_href;
+                controller.nextPageHref = data.next_href;
             });
         }
 
-        else if($scope.searchType == 'soundcloud-playlist-song') {
+        else if(controller.searchType == 'soundcloud-playlist-song') {
             $http({
-                url: $scope.searchPageHref || $scope.searchHref,
+                url: controller.searchPageHref || controller.searchHref,
                 method: 'GET',
-                params: $scope.searchPageHref ? undefined : { 
+                params: controller.searchPageHref ? undefined : { 
                     client_id: _q.soundcloudClientId,
                     limit: 50,
                     linked_partitioning: 1
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.collection, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.title,
                         url: value.permalink_url,
                         length: value.duration,
@@ -201,111 +200,111 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                         icon: "fa-soundcloud"
                     });
                 });
-                $scope.nextPageHref = data.next_href;
+                controller.nextPageHref = data.next_href;
             });
         }
 
-        else if($scope.searchType == 'soundcloud-playlist') {
+        else if(controller.searchType == 'soundcloud-playlist') {
             $http({
-                url: $scope.nextPageHref || 'http://api.soundcloud.com/playlists',
+                url: controller.nextPageHref || 'http://api.soundcloud.com/playlists',
                 method: 'GET',
-                params: $scope.nextPageHref ? undefined : {
-                    q: $scope.searchText,
+                params: controller.nextPageHref ? undefined : {
+                    q: controller.searchText,
                     client_id: _q.soundcloudClientId,
                     limit: 50,
                     linked_partitioning: 1
                 }
             }).success(function(data) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(data.collection, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.title,
                         api: value.uri,
                         artist: value.user.username
                     });
                 });
-                $scope.nextPageHref = data.next_href;
+                controller.nextPageHref = data.next_href;
             });
         }
 
-        else if($scope.searchType == 'youtube-video' && gapi.client.youtube) {
+        else if(controller.searchType == 'youtube-video' && gapi.client.youtube) {
             var request = gapi.client.youtube.search.list({
-               q: $scope.searchText,
+               q: controller.searchText,
                part: 'snippet',
                type: 'video',
                maxResults: 50,
-               pageToken: $scope.pageToken
+               pageToken: controller.pageToken
             });
 
             request.execute(function(response) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(response.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.snippet.title,
                         id: value.id.videoId,
                         artist: value.snippet.channelTitle
                     });
                 });
-                $scope.nextPageToken = response.nextPageToken;
-                $scope.$apply();
+                controller.nextPageToken = response.nextPageToken;
+                controller.$apply();
             });
         }
 
-        else if($scope.searchType == 'youtube-playlist' && gapi.client.youtube) {
+        else if(controller.searchType == 'youtube-playlist' && gapi.client.youtube) {
             var request = gapi.client.youtube.search.list({
-               q: $scope.searchText,
+               q: controller.searchText,
                part: 'snippet',
                type: 'playlist',
                maxResults: 50,
-               pageToken: $scope.pageToken
+               pageToken: controller.pageToken
             });
 
             request.execute(function(response) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(response.items, function(index, value) {
-                    $scope.searchResults.push({
+                    controller.searchResults.push({
                         name: value.snippet.title,
                         id: value.id.playlistId,
                         artist: value.snippet.channelTitle
                     });
                 });
-                $scope.nextPageToken = response.nextPageToken;
-                $scope.$apply();
+                controller.nextPageToken = response.nextPageToken;
+                controller.$apply();
             });
         }
 
-        else if($scope.searchType == 'youtube-playlist-item' && gapi.client.youtube) {
+        else if(controller.searchType == 'youtube-playlist-item' && gapi.client.youtube) {
             var request = gapi.client.youtube.playlistItems.list({
                 part: 'snippet',
-                playlistId: $scope.searchId,
+                playlistId: controller.searchId,
                 maxResults: 50,
-                pageToken: $scope.pageToken
+                pageToken: controller.pageToken
             });
 
             request.execute(function(response) {
-                $scope.loading = false;
+                controller.loading = false;
                 $.each(response.items, function(index, value) {
                     if(value.snippet.resourceId.kind == 'youtube#video') {
-                        $scope.searchResults.push({
+                        controller.searchResults.push({
                             name: value.snippet.title,
                             id: value.snippet.resourceId.videoId,
                             artist: value.snippet.channelTitle
                         });
                     }
                 });
-                $scope.nextPageToken = response.nextPageToken;
-                $scope.$apply();
+                controller.nextPageToken = response.nextPageToken;
+                controller.$apply();
             });
         }
     } else {
         jQuery("#search").focus(); // hacky, i'm sorry angular
     }
 
-    $scope.search = function(type) {
-        if($scope.searchText || type == 'spotify-playlist') {
+    controller.search = function(type) {
+        if(controller.searchText || type == 'spotify-playlist') {
             $location.search({
                 t: type,
-                q: $scope.searchText,
+                q: controller.searchText,
                 h: null,
                 ph: null,
                 id: null,
@@ -315,7 +314,7 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
         }      
     }
 
-    $scope.viewSoundcloudPlaylist = function(result) {        
+    controller.viewSoundcloudPlaylist = function(result) {        
         $location.search({
             t: 'soundcloud-playlist-song',
             h: result.api + '/tracks',
@@ -327,7 +326,7 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
         });
     };
 
-    $scope.viewSpotifyPlaylist = function(result) {
+    controller.viewSpotifyPlaylist = function(result) {
         $location.search({
             t: 'spotify-playlist-song',
             h: result.api,
@@ -338,7 +337,7 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
             p: null
         });
     }
-    $scope.viewSpotifyAlbum = function(result) {
+    controller.viewSpotifyAlbum = function(result) {
         $location.search({
             t: 'spotify-album-song',
             h: result.api + '/tracks',
@@ -350,7 +349,7 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
         });
     }
 
-    $scope.viewYoutubePlaylist = function(result) {
+    controller.viewYoutubePlaylist = function(result) {
         $location.search({
             t: 'youtube-playlist-item',
             h: null,
@@ -362,19 +361,19 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
         });
     }
     
-    $scope.addQueue = function(type, result) {
+    controller.addQueue = function(type, result) {
         result.added = true;
-        $scope.socket.emit('add-queue', {type: type, results: [result]});
+        controller.socket.emit('add-queue', {type: type, results: [result]});
     }
 
-    $scope.addYoutubeQueue = function(type, result) {
+    controller.addYoutubeQueue = function(type, result) {
         var request = gapi.client.youtube.videos.list({
            part: 'contentDetails',
            id: result.id
         });
 
         request.execute(function(data) {
-            $scope.addQueue(type, {
+            controller.addQueue(type, {
                 name: result.name,
                 url: "https://www.youtube.com/watch?v=" + result.id,
                 length: convert_time(data.items[0].contentDetails.duration),
@@ -382,33 +381,33 @@ module.controller('controllerSearch', ['$scope', '$location', '$http',
                 icon: "fa-youtube-play"
             });
             result.added = true;
-            $scope.$apply();
+            controller.$apply();
         });
     }
 
-    $scope.pageBack = function() {
+    controller.pageBack = function() {
         window.history.back();
     }
 
-    $scope.pageForward = function() {
-        if($scope.nextPageToken) {
+    controller.pageForward = function() {
+        if(controller.nextPageToken) {
             $location.search($.extend({}, $location.search(), {
-                pt: $scope.nextPageToken
+                pt: controller.nextPageToken
             }));
-        } else if($scope.nextPageHref) {
+        } else if(controller.nextPageHref) {
             $location.search({
-                ph: $scope.nextPageHref,
+                ph: controller.nextPageHref,
                 h: null,
                 q: null,
                 id: null,
                 pt: null,
                 p: null,
-                t: $scope.searchType
+                t: controller.searchType
             });
         }
     }
     
-    $scope.focusSearch = function() {
+    controller.focusSearch = function() {
         window.scrollTo(0, 0);
     }
 

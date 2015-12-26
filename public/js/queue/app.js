@@ -1,23 +1,21 @@
-var queueApp = angular.module('queueApp', [
+angular.module('queue', [
   'ngRoute',
-  'moduleControllerNavigation',
-  'moduleControllerQueue',
-  'moduleControllerSearch'
-]);
-
-queueApp.config(['$routeProvider',
-  function($routeProvider) {
-    $routeProvider.
-      when('/search', {
-        templateUrl: '/partials/queue/search.html',
-        controller: 'controllerSearch'
-      }).
-      when('/', {
-        templateUrl: '/partials/queue/queue.html',
-        controller: 'controllerQueue'
-      }).
-      otherwise({
-        redirectTo: '/'
-      });
-  }]);
-
+  'queueNavigation',
+  'queueQueue',
+  'queueSearch'
+])
+.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) { 
+  $locationProvider.html5Mode(true); 
+  $routeProvider.
+    when('/search', {
+      templateUrl: '/partials/queue/search.html',
+      controller: 'SearchController as searchController'
+    }).
+    when('/', {
+      templateUrl: '/partials/queue/queue.html',
+      controller: 'QueueController as queueController'
+    }).
+    otherwise({
+      redirectTo: '/'
+    });
+}]);

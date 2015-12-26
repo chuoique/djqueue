@@ -8,7 +8,14 @@
     <script>
     _q = <%- bootstrap %>
     </script>
-    <script src="/js/lib/jquery-1.11.2.min.js"></script>
+  </head>
+  <body id="login-body">
+    <form id="login">
+      <label for="name">Name</label>
+      <input type="text" id="name" value="">
+      <input type="submit" value="Join">
+    </form>
+    <script src="/js/lib/jquery-1.11.3.min.js"></script>
     <script>
     $(document).ready(function() {
       if(localStorage['queueUsername']) {
@@ -23,12 +30,5 @@
       });
     });
     </script>
-  </head>
-  <body id="login-body">
-    <form id="login">
-      <label for="name">Name</label>
-      <input type="text" id="name" value="">
-      <input type="submit" value="Join">
-    </form>
   </body>
 </html>

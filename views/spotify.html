@@ -10,10 +10,9 @@
     <script>
       if(localStorage['queueId']) {
         var hashParams = {};
-        var e, r = /([^&;=]+)=?([^&;]*)/g,
-            q = window.location.hash.substring(1);
-        while ( e = r.exec(q)) {
-            hashParams[e[1]] = decodeURIComponent(e[2]);
+        var e, r = /([^&;=]+)=?([^&;]*)/g, q = window.location.hash.substring(1);
+        while (e = r.exec(q)) {
+          hashParams[e[1]] = decodeURIComponent(e[2]);
         }
         if(hashParams.state == localStorage['spotifyState']) {
           localStorage['spotifyToken'] = hashParams['access_token'];
@@ -22,7 +21,6 @@
           localStorage['spotifyExpire'] = t;
           window.location.href = _q.host + localStorage['queueId'] + '/queue#/search';
         }
-        
       }
     </script>
   </body>

@@ -16,6 +16,7 @@ var setup = function(app, queues, config, apiKeys) {
           return;
         }
 
+        // data available to front-end app
         res.locals.bootstrap = bootstrapString({
           users: queue.users,
           queue: queue.queue,
@@ -26,6 +27,9 @@ var setup = function(app, queues, config, apiKeys) {
           spotifyClientId: apiKeys.spotify,
           googleKey: apiKeys.google
         });
+
+        // <base> tag
+        res.locals.base = config.host + req.queueId + '/queue/';
 
         res.render(template);
       });
@@ -73,6 +77,7 @@ var setup = function(app, queues, config, apiKeys) {
 
   // for the queue management devices
   app.get('/:id/queue', renderQueue('queue.html'));
+  app.get('/:id/queue/search', renderQueue('queue.html'));
 
   // login page where queue management devices can enter their name
   app.get('/:id', renderQueue('login.html'));
