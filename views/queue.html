@@ -8,8 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>djQueue</title>
     <script>_q = <%- bootstrap %>;</script>
+    <script>
+      if(!localStorage['queueUsername']) {
+        window.location.href = _q.host + _q.id;
+      }
+    </script>
   </head>
-  <body ng-controller="NavigationController as navigationController">
+  <body ng-controller="QueueController as queue">
     <div ng-view></div>
     <script>
       function googleApiClientReady() {
@@ -26,9 +31,11 @@
     <script src="/js/lib/angular.min.js"></script>
     <script src="/js/lib/angular-route.min.js"></script>
 
-    <script src="/js/queue/app.js"></script>
-    <script src="/js/queue/navigation-controller.js"></script>
-    <script src="/js/queue/queue-controller.js"></script>
-    <script src="/js/queue/search-controller.js"></script>
+    <script src="/js/queue-app/app.js"></script>
+    <script src="/js/queue-app/list-controller.js"></script>
+    <script src="/js/queue-app/search-controller.js"></script>
+    <script src="/js/util/queue-controller.js"></script>
+    <script src="/js/util/queue-service.js"></script>
+    <script src="/js/util/socket-factory.js"></script>
   </body>
 </html>

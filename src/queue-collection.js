@@ -12,7 +12,7 @@ QueueCollection.prototype.createQueue = function(id, callback) {
     return;
   }
 
-  this.queues[id] = new Queue(id);
+  this.queues[id] = new Queue();
   callback(null, this.queues[id]);
 };
 

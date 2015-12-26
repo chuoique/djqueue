@@ -20,10 +20,12 @@ var setup = function(io, queues, config, apiKeys) {
 
   // on new connections, add a user to the queue and register listeners
   io.on('connection', function(socket) {
+    var queueId = socket.handshake.query.queueId;
+
     async.waterfall([
       // get the queue
       function(done) {
-        queues.getQueue(socket.handshake.query.queueId, done);
+        queues.getQueue(queueId, done);
       },
 
       // add the user
@@ -41,12 +43,12 @@ var setup = function(io, queues, config, apiKeys) {
       }
 
       // tell everyone a new user joined
-      io.in(queue.queueId).emit('username', user);
+      io.in(queueId).emit('username', user);
       // put the user in the room identified by the url of the queue
-      socket.join(queue.queueId);
+      socket.join(queueId);
 
       // add event listeners for this socket
-      addListeners(io, queues, socket, queue.queueId, user.id);
+      addListeners(io, queues, socket, queueId, user.id);
     });
   });
 };
@@ -54,7 +56,6 @@ var setup = function(io, queues, config, apiKeys) {
 // setup handlers for messages from new connections
 var addListeners = function(io, queues, socket, queueId, userId) {
 
-  // # utility functions
   // utility emit function that will emit to the correct channel
   var emitChannel = function(eventName, data) {
     io.in(queueId).emit(eventName, data);
@@ -77,7 +78,7 @@ var addListeners = function(io, queues, socket, queueId, userId) {
     return [function(done) {
       queue.removeUser(userId, done);
     }, function() {
-      emitChannel('user-disconnect', userId);
+      emitChannel('user-disconnect', {id: userId});
     }];
   }));
 
@@ -88,6 +89,23 @@ var addListeners = function(io, queues, socket, queueId, userId) {
       socket.emit('queue-reload', queue);
     }];
   }));
+
+  // utility function that emits a 'play' event if queue.play was successfull
+  var emitPlay = function(item) {
+    if(item) {
+      // tell all clients what song is being played
+      emitChannel('play-queue', {
+        type: 'now',
+        url: item.url,
+        id: item.id
+      });
+    } else {
+      // tell all clients to stop playing
+      emitChannel('play-queue', {
+        type: 'none'
+      });
+    }
+  };
 
   // add items to the queue
   socket.on('add-queue', createHandler(function(queue, data) {
@@ -116,7 +134,13 @@ var addListeners = function(io, queues, socket, queueId, userId) {
         type: data.type,
         items: items
       });
-    }];
+
+      if(data.type == 'now' && items && items[0]) {
+        queue.play(items[0].id, 0, done);
+      }
+    },
+    emitPlay
+    ];
   }));
 
   // play an item with an id
@@ -128,19 +152,8 @@ var addListeners = function(io, queues, socket, queueId, userId) {
         queue.play(data.id, 0, done);
       }
     },
-    function(item) {
-      if(item) {
-        emitChannel('play-queue', {
-          type: 'now',
-          url: item.url,
-          id: item.id
-        });
-      } else {
-        emitChannel('play-queue', {
-          type: 'none'
-        });
-      }
-    }];
+    emitPlay
+    ];
   }));
 
   // play the next or prev item from the current item (with -1 or 1 for index)
@@ -148,19 +161,8 @@ var addListeners = function(io, queues, socket, queueId, userId) {
     return [function(done) {
       queue.play(null, data.index, done);
     },
-    function(item) {
-      if(item) {
-        emitChannel('play-queue', {
-          type: 'now',
-          url: item.url,
-          id: item.id
-        });
-      } else {
-        emitChannel('play-queue', {
-          type: 'none'
-        });
-      }
-    }];
+    emitPlay
+    ];
   }));
 
   // remove an item from the queue by id

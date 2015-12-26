@@ -1,4 +1,6 @@
-var _ = require('underscore');
+(function(){
+
+// borrowed from /src/queue.js, this could be automated by some sort of build system
 
 var Queue = function() {
   this.users = {};
@@ -114,10 +116,10 @@ Queue.prototype.toJSON = function() {
 };
 
 // reset the queue and fill it in with data
-Queue.prototype.reset = function(users, queue, playingItemId) {
-  this.users = users;
-  this.queue = queue;
-  this.playingItemId = playingItemId;
+Queue.prototype.reset = function(data) {
+  this.users = data.users;
+  this.queue = data.queue;
+  this.playingItemId = data.nowPlayingId; // refactor these names to be the same
   this.nextUserId = 0;
   this.nextItemId = 0;
 };
@@ -144,4 +146,31 @@ Queue.prototype.getItemById = function(itemId, indexOffset) {
   return result;
 };
 
-module.exports = Queue;
+// map the express-style (err, result) callbacks in Queue
+// into a angular service with promises
+angular.module('utilQueue', [])
+.service('queueService', ['$q', function($q) {
+  this.queue = new Queue();
+  // fill in with the bootstrapped data
+  this.queue.reset(_q);
+  // action('methodName', [arg1, arg2, ...]).then() to call queue.methodName
+  this.action = function(name, args) {
+    var defer = $q.defer();
+    this.queue[name].apply(this.queue, args.concat([function(err, result) {
+      if(err) {
+        defer.reject(err);
+      } else {
+        defer.resolve(result);
+      }
+    }]));
+    return defer.promise;
+  };
+  this.toJSON = function() {
+    return this.queue.toJSON();
+  };
+  this.reset = function(data) {
+    this.queue.reset(data);
+  }
+}]);
+
+})();

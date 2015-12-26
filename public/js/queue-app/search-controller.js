@@ -1,7 +1,14 @@
-angular.module('queueSearch', [])
-.controller('SearchController', ['$location', '$http',
-  function($location, $http) {
+angular.module('queueSearch', ['utilSocket'])
+.controller('SearchController', ['$location', '$http', 'socketFactory',
+  function($location, $http, socket) {
     var controller = this;
+
+    controller.socket = socket;
+
+    controller.navigateList = function() {
+      $location.path('/');
+    };
+    
     var searchParams = $location.search();
     controller.searchText = searchParams.q || "";
     controller.searchType = searchParams.t || "";
@@ -146,7 +153,8 @@ angular.module('queueSearch', [])
                     });
                 });
             } else {
-                localStorage['spotifyState'] = Math.round(Math.random() * 1000);
+                localStorage['queueId'] = _q.id;
+                localStorage['spotifyState'] = Math.random().toString(36).slice(2);
                 window.location.href = 
                  "https://accounts.spotify.com/authorize?client_id=" + encodeURIComponent(_q.spotifyClientId) +
                  "&redirect_uri=" + encodeURIComponent(_q.host + "spotify") +

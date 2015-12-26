@@ -1,7 +1,10 @@
-angular.module('queueQueue', [])
-.controller('QueueController',
-  function() {
+angular.module('queueList', [])
+.controller('ListController',
+  ['$location', function($location) {
     var controller = this;
+    controller.navigateSearch = function() {
+      $location.path('/search');
+    };
     controller.playQueue = function(type, item) {
         controller.socket.emit('play-queue', {type: type, id: item.id});
     };
@@ -14,5 +17,5 @@ angular.module('queueQueue', [])
     controller.prevTrack = function() {
         controller.socket.emit('play-index', {index: -1});
     };
-  }
+  }]
 );
