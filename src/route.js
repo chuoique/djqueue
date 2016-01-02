@@ -1,7 +1,6 @@
-
 // setup endpoints for the app
 var setup = function(app, queues, config, apiKeys) {
-  // # utility functions
+
   // stringify and escape any </script> tags
   var bootstrapString = function(json) {
     return JSON.stringify(json).replace("/", "\\/");
@@ -18,17 +17,13 @@ var setup = function(app, queues, config, apiKeys) {
 
         // data available to front-end app
         res.locals.bootstrap = bootstrapString({
-          users: queue.users,
-          queue: queue.queue,
-          nowPlayingId: queue.nowPlayingId,
-          id: req.queueId,
           host: config.host,
-          soundcloudClientId: apiKeys.soundcloud,
-          spotifyClientId: apiKeys.spotify,
-          googleKey: apiKeys.google
+          apiKeys: apiKeys,
+          queueId: req.queueId,
+          queue: queue.toJSON()
         });
 
-        // <base> tag
+        // <base> tag for HTML5 pushState
         res.locals.base = config.host + req.queueId + '/queue/';
 
         res.render(template);
@@ -36,14 +31,21 @@ var setup = function(app, queues, config, apiKeys) {
     }
   };
 
-  // # route setup
+  // routes
+
   // extract the id from the path
-  app.param('id', function(req, res, next, id) {
-    req.queueId = id;
-    next();
+  app.param('queueId', function(req, res, next, queueId) {
+    // alphanumeric- urls only
+    if(/[a-z0-9\-]+$/i.test(queueId)) {
+      req.queueId = queueId;
+      next();
+    } else {
+      res.status(404);
+      res.send();
+    }
   });
 
-  // don't include a front page
+  // don't include a front page (hacky way to avoid some spam)
   app.get('/', function(req, res, next) {
     res.status(404);
     res.send();
@@ -56,31 +58,31 @@ var setup = function(app, queues, config, apiKeys) {
   });
 
   // create a new queue with POST /create/id
-  app.post('/create/:id', function(req, res, next) {
-    // alphanumeric- urls only
-    if(/[a-z0-9\-]+$/i.test(req.queueId)) {
-      queues.createQueue(req.queueId, function(err) {
-        if(err) {
-          next(err);
-          return;
-        }
-        // redirect to the queue after creation
-        res.redirect('/' + req.queueId);
-      });
-    } else {
-      next(new Error('invalid id'));
-    }
+  app.post('/create/:queueId', function(req, res, next) {
+    queues.createQueue(req.queueId, function(err) {
+      if(err) {
+        next(err);
+        return;
+      }
+      // redirect to the queue after creation
+      res.redirect('/' + req.queueId);
+    });
   });
 
   // for the casting device
-  app.get('/:id/cast', renderQueue('cast.html'));
+  app.get('/:queueId/cast', renderQueue('cast.html'));
 
   // for the queue management devices
-  app.get('/:id/queue', renderQueue('queue.html'));
-  app.get('/:id/queue/search', renderQueue('queue.html'));
 
   // login page where queue management devices can enter their name
-  app.get('/:id', renderQueue('login.html'));
+  app.get('/:queueId', renderQueue('login.html'));
+
+  // root of the queue management front-end app
+  app.get('/:queueId/queue', renderQueue('queue.html'));
+
+  // /search is handled by HTML5 pushState, but we still need to serve a page
+  app.get('/:queueId/queue/search', renderQueue('queue.html'));
+
 
   // 404 handler
   app.use(function(req, res, next) {

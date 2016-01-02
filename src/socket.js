@@ -1,7 +1,7 @@
 var _ = require('underscore');
 var async = require('async');
 
-// setup handlers for accepting new connections
+// creates handlers for accepting new connections
 var setup = function(io, queues, config, apiKeys) {
 
   // validate new connections before letting them connect
@@ -30,7 +30,9 @@ var setup = function(io, queues, config, apiKeys) {
 
       // add the user
       function(queue, done) {
-        var user = {username: socket.handshake.query.queryUsername};
+        var user = {
+          name: socket.handshake.query.queryUsername
+        };
         queue.addUser(user, function(err, user) {
           done(err, queue, user);
         });
@@ -42,13 +44,13 @@ var setup = function(io, queues, config, apiKeys) {
         return;
       }
 
-      // tell everyone a new user joined
-      io.in(queueId).emit('username', user);
-      // put the user in the room identified by the url of the queue
+      // put the user in the room identified by the uri of the queue
       socket.join(queueId);
+      // tell everyone a new user joined
+      io.in(queueId).emit('user-add', user);
 
       // add event listeners for this socket
-      addListeners(io, queues, socket, queueId, user.id);
+      addListeners(io, queues, socket, queueId, user.userId);
     });
   });
 };
@@ -61,117 +63,138 @@ var addListeners = function(io, queues, socket, queueId, userId) {
     io.in(queueId).emit(eventName, data);
   };
 
-  // utility function, adds things that are common to every handler
-  // (for now, fetching the queue's data by queueId)
+  // utility function that adds things that are common to every handler
+  // such as fetching the queue's data.
+  // fn will be called with the queue's data and the event data and 
+  // should return a list of functions to perform sequentially
   var createHandler = function(fn) {
     return function(data) {
       queues.getQueue(queueId, function(err, queue) {
-        if(err) {return;}
-        async.waterfall(fn(queue, data), function(){});
+        if(err) {
+          return;
+        }
+        async.waterfall(fn(queue, data), function() {});
       });
     };
   };
 
-  // # event listeners
+  // utility function that emits a play event if queue.play was successful
+  var emitPlay = function(err, item) {
+    if(item) {
+      // tell all clients what song is being played
+      emitChannel('queue-play', item);
+    } else {
+      // tell all clients to stop playing
+      emitChannel('queue-stop', {});
+    }
+  };
+
+  // utility function that filters through new items and attaches the userId
+  var mapItems = function(items) {
+    return _.map(items, function(value) {
+      return {
+        userId: userId, // attach the user id
+        url: value.url,
+        name: value.name,
+        length: value.length,
+        artist: value.artist,
+        icon: value.icon
+      };
+    });
+  };
+  
+  // event listeners
+
   // user disconnect
   socket.on('disconnect', createHandler(function(queue, data) {
     return [function(done) {
       queue.removeUser(userId, done);
     }, function() {
-      emitChannel('user-disconnect', {id: userId});
+      emitChannel('user-remove', {userId: userId});
     }];
   }));
 
   // request all queue data to be retransfered (e.g., phone has been
   // in its lock screen for a while and hasn't received messages)
-  socket.on('request-reload', createHandler(function(queue, data) {
+  socket.on('queue-reload', createHandler(function(queue, data) {
     return [function() {
       socket.emit('queue-reload', queue);
     }];
   }));
 
-  // utility function that emits a 'play' event if queue.play was successfull
-  var emitPlay = function(item) {
-    if(item) {
-      // tell all clients what song is being played
-      emitChannel('play-queue', {
-        type: 'now',
-        url: item.url,
-        id: item.id
-      });
-    } else {
-      // tell all clients to stop playing
-      emitChannel('play-queue', {
-        type: 'none'
-      });
-    }
-  };
-
   // add items to the queue
-  socket.on('add-queue', createHandler(function(queue, data) {
+  // queue-add-now is a shortcut for queue-add-next followed by queue-play
+  socket.on('queue-add-now', createHandler(function(queue, data) {
     return [function(done) {
-      // filter out any unnecessary data
-      var items = _.map(data.results, function(value) {
-        return {
-          userId: userId, // attach the user id
-          url: value.url,
-          name: value.name,
-          length: value.length,
-          artist: value.artist,
-          icon: value.icon
-        };
-      });
-      
-      if(data.type == 'now' || data.type == 'next') {
-        queue.insertAfter(items, done);
-      } else {
-        queue.append(items, done);
-      }
+      queue.insertAfter(mapItems(data.items), done);
     },
     function(items, done) {
       // send it to the other clients
-      emitChannel('add-queue', {
-        type: data.type,
-        items: items
-      });
-
-      if(data.type == 'now' && items && items[0]) {
-        queue.play(items[0].id, 0, done);
+      if(items && items[0]) {
+        emitChannel('queue-add-next', {items: items});
+        queue.play(items[0].itemId, 0, emitPlay);
       }
+    }];
+  }));
+
+  socket.on('queue-add-next', createHandler(function(queue, data) {
+    return [function(done) {
+      queue.insertAfter(mapItems(data.items), done);
     },
-    emitPlay
-    ];
+    function(items) {
+      emitChannel('queue-add-next', {items: items});
+    }];
+  }));
+
+  socket.on('queue-add-last', createHandler(function(queue, data) {
+    return [function(done) {      
+      queue.append(mapItems(data.items), done);
+    },
+    function(items) {
+      emitChannel('queue-add-last', {items: items});
+    }];
   }));
 
   // play an item with an id
-  socket.on('play-queue', createHandler(function(queue, data) {
+  socket.on('queue-play', createHandler(function(queue, data) {
     return [function(done) {
-      if(data.type == 'none') {
-        queue.stop(done);
-      } else {
-        queue.play(data.id, 0, done);
-      }
-    },
-    emitPlay
-    ];
+      queue.play(data.itemId, 0, emitPlay);
+    }];
+  }));
+
+  socket.on('queue-stop', createHandler(function(queue, data) {
+    return [function(done) {
+      queue.stop(done);
+    }, function() {
+      emitChannel('queue-stop', {});
+    }];
   }));
 
   // play the next or prev item from the current item (with -1 or 1 for index)
   socket.on('play-index', createHandler(function(queue, data) {
     return [function(done) {
-      queue.play(null, data.index, done);
-    },
-    emitPlay
-    ];
+      queue.play(null, data.index, emitPlay);
+    }];
   }));
 
   // remove an item from the queue by id
-  socket.on('remove-queue', createHandler(function(queue, data) {
+  socket.on('queue-remove', createHandler(function(queue, data) {
     return [function(done) {
-      queue.remove(data.id, done);
+      queue.getPlayingItemId(done)
+    },
+    function(playingItemId, done) {
+      // skip to the next item if they are removing the playing item
+      if(data.itemId == playingItemId) {
+        queue.play(null, 1, emitPlay, done);
+      } else {
+        done(null, {});
+      }
+    },
+    function(item, done) {
+      queue.remove(data.itemId, done);
     },
     function(item) {
-      emitChannel('remove-queue', {id: data.id});
+      emitChannel('queue-remove', {itemId: data.itemId});
     }];
   }));
 };

@@ -62,7 +62,7 @@ angular.module('queueSearch', ['utilSocket', 'queueApiAdapter'])
     // go to the previous page of results
     controller.pageBack = function() {
       // mostly a design decision, since i don't like the browser back button
-      // to take me forward a page after i use the prev page button
+      // to take me forward a page after i use the prev page button.
       window.history.back();
       // note that this will not work if you copy and paste a url, etc.
       // could also be implemented similarly to pageForward.
@@ -96,17 +96,22 @@ angular.module('queueSearch', ['utilSocket', 'queueApiAdapter'])
     // add the item to the queue
     controller.add = function(position, item) {
       // if they specified an add function, call that first
-      (controller.currentApi.add || $q.resolve)(item).then(function(itemToSend) {
+      (controller.currentApi.add || $q.resolve)(item).then(function(newItem) {
         item.added = true; // give it a visible "item added" indicator on the search results
-
-        // attach the icon to it
-        itemToSend.icon = apis.adapters[controller.paramApi].icon;
-        socket.emit('add-queue', {type: position, results: [itemToSend]});
+        newItem = {
+          name: newItem.name, // filter out unnecessary data
+          artist: newItem.artist,
+          url: newItem.url,
+          length: newItem.length,
+          icon: apis.adapters[controller.paramApi].icon // attach the icon to it
+        };
+        
+        socket.emit('queue-add-' + position, {items: [newItem]});
       });
-    }
+    };
 
     // hacky one-liner to scroll to the top of the page when the search box
-    // is selected. ideally, this could be done with a directive
+    // is selected. ideally this could be done with a directive
     controller.focusSearch = function() {
       window.scrollTo(0, 0);
     };

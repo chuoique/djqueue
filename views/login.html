@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/css/app.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="/favicon.png">
-    <title>Queue</title>
+    <title>djQueue</title>
     <script>
     _q = <%- bootstrap %>
     </script>
@@ -20,12 +20,12 @@
     <script>
     $(document).ready(function() {
       if(localStorage['queueUsername']) {
-        window.location.href = _q.host + _q.id + '/queue';
+        window.location.href = _q.host + _q.queueId + '/queue';
       }
       $("#login").submit(function(event) {
         localStorage['queueUsername'] = $("#name").val();
         if(localStorage['queueUsername']) {
-          window.location.href = _q.host + _q.id + '/queue';
+          window.location.href = _q.host + _q.queueId + '/queue';
         }
         event.preventDefault();
       });

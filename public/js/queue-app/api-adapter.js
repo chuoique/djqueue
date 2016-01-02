@@ -1,5 +1,6 @@
-angular.module('queueApiAdapter', [])
-.factory('apiAdapter', ['$q', '$http', function($q, $http) {
+angular.module('queueApiAdapter', ['utilBootstrap'])
+.factory('apiAdapter', ['$q', '$http', '_q', '_g',
+function($q, $http, _q, _g) {
 
   // common interface for different external apis
   // interface format
@@ -67,7 +68,7 @@ angular.module('queueApiAdapter', [])
   var adapters = {
 
     'spotify': {
-      apiKey: _q.spotifyClientId,
+      apiKey: _q.apiKeys.spotify,
       icon: 'fa-spotify',
       itemTypes: {
 
@@ -157,7 +158,7 @@ angular.module('queueApiAdapter', [])
 
             // get a token
             if(!localStorage['spotifyToken'] || new Date() >= Date.parse(localStorage['spotifyExpire'])) {
-              localStorage['queueId'] = _q.id;
+              localStorage['queueId'] = _q.queueId;
               localStorage['spotifyState'] = Math.random().toString(36).slice(2);
 
               window.location.href = 
@@ -245,7 +246,7 @@ angular.module('queueApiAdapter', [])
 
 
     'soundcloud': {
-      apiKey: _q.soundcloudClientId,
+      apiKey: _q.apiKeys.soundcloud,
       icon: 'fa-soundcloud',
       itemTypes: {
 
@@ -333,7 +334,7 @@ angular.module('queueApiAdapter', [])
 
 
     'youtube': {
-      apiKey: _q.googleKey,
+      apiKey: _q.apiKeys.google,
       icon: 'fa-youtube-play',
 
        itemTypes: {
@@ -341,7 +342,7 @@ angular.module('queueApiAdapter', [])
         'video': {
           get: function(text, view, page, key) {
             return loadYoutube().then(function() {
-              return gapi.client.youtube.search.list({
+              return _g.gapi.client.youtube.search.list({
                 q: text,
                 part: 'snippet',
                 type: 'video',
@@ -364,7 +365,7 @@ angular.module('queueApiAdapter', [])
 
           add: function(item) {
             return loadYoutube().then(function() {
-              return gapi.client.youtube.videos.list({
+              return _g.gapi.client.youtube.videos.list({
                 part: 'contentDetails',
                 id: item._youtubeId
               });
@@ -382,7 +383,7 @@ angular.module('queueApiAdapter', [])
         'playlist-item': {
           get: function(text, view, page, key) {
             return loadYoutube().then(function() {
-              return gapi.client.youtube.search.list({
+              return _g.gapi.client.youtube.search.list({
                 part: 'snippet',
                 playlistId: view,
                 maxResults: 50,
@@ -406,7 +407,7 @@ angular.module('queueApiAdapter', [])
 
           add: function(item) {
             return loadYoutube().then(function() {
-              return gapi.client.youtube.videos.list({
+              return _g.gapi.client.youtube.videos.list({
                 part: 'contentDetails',
                 id: item._youtubeId
               });
@@ -426,7 +427,7 @@ angular.module('queueApiAdapter', [])
 
           get: function(text, view, page, key) {
             return loadYoutube().then(function() {
-              return gapi.client.youtube.search.list({
+              return _g.gapi.client.youtube.search.list({
                 q: text,
                 part: 'snippet',
                 type: 'playlist',
@@ -491,7 +492,7 @@ angular.module('queueApiAdapter', [])
     }]
   }];
 
-  // http://stackoverflow.com/a/22149575, quick hack to avoid loading moment.js or another time library
+  // http://stackoverflow.com/a/22149575, quick hack to avoid loading a time library such as moment.js
   var youtubeToMilliseconds = function(duration) {
     var a = duration.match(/\d+/g);
 
@@ -525,8 +526,8 @@ angular.module('queueApiAdapter', [])
     return duration * 1000;
   };
 
-  // function that returns a resolved promise if gapi client has loaded,
-  // or a promise that resolves when the gapi client loads
+  // function that returns a resolved promise if _g.gapi client has loaded,
+  // or a promise that resolves when the _g.gapi client loads
   var youtubeDefer = null;
   var loadYoutube = function() {
     if(_g.loaded) {

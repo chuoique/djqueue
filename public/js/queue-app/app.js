@@ -5,7 +5,8 @@ angular.module('queue', [
   'queueSearch',
   'utilSocket',
   'utilQueue',
-  'queueApiAdapter'
+  'queueApiAdapter',
+  'utilBootstrap'
 ])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) { 
   $locationProvider.html5Mode(true); 

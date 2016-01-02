@@ -4,10 +4,11 @@
 
 var Queue = function() {
   this.users = {};
-  this.queue = [];
+  this.list = [];
   this.nextUserId = 0;
   this.nextItemId = 0;
-  this.playingItemId = '';
+  this.playingItemId = null;
+  this.timeout = null;
 };
 
 // exposed as async methods, thinking of using redis at some point instead
@@ -17,17 +18,17 @@ var Queue = function() {
 Queue.prototype.insertAfter = function(newItems, callback) {
   var queue = this;
 
-  newItems.forEach(function(item) {
-    item.id = queue.nextItemId++;
-  });
+  /*newItems.forEach(function(item) {
+    item.itemId = queue.nextItemId++;
+  });*/
 
   var itemResult = this.getItemById(this.playingItemId, 0);
 
   if(itemResult.item) {
-    Array.prototype.splice.apply(this.queue, [itemResult.index + 1, 0].concat(newItems));
+    Array.prototype.splice.apply(this.list, [itemResult.index + 1, 0].concat(newItems));
   } else {
     // just append if the nowPlayingId doesn't work
-    Array.prototype.push.apply(this.queue, newItems);
+    Array.prototype.push.apply(this.list, newItems);
   }
 
   callback(null, newItems);
@@ -37,11 +38,11 @@ Queue.prototype.insertAfter = function(newItems, callback) {
 Queue.prototype.append = function(newItems, callback) {
   var queue = this;
 
-  newItems.forEach(function(item) {
-    item.id = queue.nextItemId++;
-  });
+  /*newItems.forEach(function(item) {
+    item.itemId = queue.nextItemId++;
+  });*/
 
-  Array.prototype.push.apply(this.queue, newItems);
+  Array.prototype.push.apply(this.list, newItems);
 
   callback(null, newItems);
 }
@@ -51,20 +52,10 @@ Queue.prototype.remove = function(itemId, callback) {
   var itemResult = this.getItemById(itemId, 0);
 
   if(itemResult.item) {
-    this.queue.splice(itemResult.index, 1);
+    this.list.splice(itemResult.index, 1);
   }
 
   callback(null, itemResult.item);
-};
-
-// remove item with id and re-insert it after the current playing item
-Queue.prototype.moveAfter = function(itemId, callback) {
-  var queue = this;
-  queue.remove(itemId, function(err, item) {
-    if(item) {
-      queue.insertAfter([item], callback);
-    }
-  });
 };
 
 // get id of currently playing item
@@ -73,30 +64,59 @@ Queue.prototype.getPlayingItemId = function(callback) {
 };
 
 // play the item indexOffset slots past itemId in the queue.
-// returns the item that is playing, or null if it was an invalid id
-Queue.prototype.play = function(itemId, indexOffset, callback) {
-  itemId = itemId || this.playingItemId;
+// returns the item that is playing, or null if it was an invalid id.
+// callback will be called once, and handler will be called every time a track
+// plays until queue.play() gets called again.
+Queue.prototype.play = function(itemId, indexOffset, handler, callback) {
+  var queue = this;
+
+  itemId = itemId !== null ? itemId : this.playingItemId;
   var itemResult = this.getItemById(itemId, indexOffset);
 
   if(itemResult.item) {
-    this.playingItemId = itemResult.item.id;
+    this.playingItemId = itemResult.item.itemId;
   } else {
-    this.playingItemId = '';
-  };
+    this.playingItemId = null;
+  }
 
-  callback(null, itemResult.item);
+  // don't do anything when the old timeout ends
+  /*if(this.timeout) {
+    clearTimeout(this.timeout);
+  }
+
+  // skip to the next track when this one finishes
+  if(itemResult.item) {
+    this.timeout = setTimeout(function() {
+      // use handler from now on so that callback is only called once
+      queue.play(null, 1, handler, null);
+    }, itemResult.item.length);
+  }*/
+
+  if(handler) {
+    handler(null, itemResult.item);
+  }
+
+  if(callback) {
+    callback(null, itemResult.item);
+  }
 };
 
 // stop playing
 Queue.prototype.stop = function(callback) {
-  this.playingItemId = '';
+  this.playingItemId = null;
+
+  // don't do anything when the old timeout ends
+  if(this.timeout) {
+    clearTimeout(this.timeout);
+  }
+  
   callback(null, null);
 }
 
 // add a new user, give him a userId
 Queue.prototype.addUser = function(user, callback) {
-  user.id = this.nextUserId++;
-  this.users[user.id] = user;
+  //user.userId = '' + (this.nextUserId++);
+  this.users[user.userId] = user;
   callback(null, user);
 };
 
@@ -110,16 +130,16 @@ Queue.prototype.removeUser = function(userId, callback) {
 Queue.prototype.toJSON = function() {
   return {
     users: this.users,
-    queue: this.queue,
-    nowPlayingId: this.playingItemId
+    list: this.list,
+    playingItemId: this.playingItemId
   };
 };
 
 // reset the queue and fill it in with data
 Queue.prototype.reset = function(data) {
   this.users = data.users;
-  this.queue = data.queue;
-  this.playingItemId = data.nowPlayingId; // refactor these names to be the same
+  this.list = data.list;
+  this.playingItemId = data.playingItemId;
   this.nextUserId = 0;
   this.nextItemId = 0;
 };
@@ -136,10 +156,10 @@ Queue.prototype.getItemById = function(itemId, indexOffset) {
     item: null
   };
 
-  this.queue.forEach(function(item, index) {
-    if(item.id == itemId && index + indexOffset >= 0 && index + indexOffset < queue.queue.length) {
+  this.list.forEach(function(item, index) {
+    if(item.itemId == itemId && index + indexOffset >= 0 && index + indexOffset < queue.list.length) {
       result.index = index + indexOffset;
-      result.item = queue.queue[result.index]
+      result.item = queue.list[result.index]
     }
   });
 
@@ -148,11 +168,11 @@ Queue.prototype.getItemById = function(itemId, indexOffset) {
 
 // map the express-style (err, result) callbacks in Queue
 // into a angular service with promises
-angular.module('utilQueue', [])
-.service('queueService', ['$q', function($q) {
+angular.module('utilQueue', ['utilBootstrap'])
+.service('queueService', ['$q', '_q', function($q, _q) {
   this.queue = new Queue();
   // fill in with the bootstrapped data
-  this.queue.reset(_q);
+  this.queue.reset(_q.queue);
   // action('methodName', [arg1, arg2, ...]).then() to call queue.methodName
   this.action = function(name, args) {
     var defer = $q.defer();

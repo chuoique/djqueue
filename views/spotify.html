@@ -20,7 +20,7 @@
           var t = new Date();
           t.setSeconds(t.getSeconds() + parseInt(hashParams['expires_in']));
           localStorage['spotifyExpire'] = t;
-          window.location.href = _q.host + localStorage['queueId'] + '/queue#/search';
+          window.location.href = _q.host + localStorage['queueId'] + '/queue/search';
         }
       }
     </script>

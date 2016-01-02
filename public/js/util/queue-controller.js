@@ -1,53 +1,67 @@
 angular.module('utilQueueController', ['utilSocket', 'utilQueue'])
 .controller('QueueController', 
-  ['$location', 'socketFactory', 'queueService', function($location, socket, queue) {
+  ['$scope', '$location', 'socketFactory', 'queueService',
+  function($scope, $location, socket, queue) {
     var controller = this;
     
+    // update the model when the queue gets changed
     controller.model = queue.toJSON();
     var updateModel = function() {
       controller.model = queue.toJSON();
     };
 
+    // unsubscribe from all socket events when controller is destroyed.
+    var listenerRemovers = [];
+    var listen = function(eventName, callback) {
+      listenerRemovers.push(socket.on(eventName, callback));
+    };
+    $scope.$on('$destroy', function() {
+      listenerRemovers.forEach(function(off) {
+        off();
+      });
+    });
+
     // reload all data if the connection gets lost, then re-connected
     var firstConnect = true;
-    socket.on('queue-reload', function(data) {
+    listen('queue-reload', function(data) {
         queue.reset(data);
         updateModel();
     });
-    socket.on('connect', function() {
+    listen('connect', function() {
       if(firstConnect) {
         firstConnect = false;
       } else {
-        socket.emit('request-reload', {});
+        socket.emit('queue-reload', {});
+        // the back-end will response with a queue-reload containing all data
       }
     });
 
-    socket.on('username', function(user) {
+    listen('user-add', function(user) {
       queue.action('addUser', [user]).then(updateModel);
     });
 
-    socket.on('user-disconnect', function(data) {
-      queue.action('removeUser', [data.id]).then(updateModel);
+    listen('user-remove', function(user) {
+      queue.action('removeUser', [user.userId]).then(updateModel);
     });
 
-    socket.on('add-queue', function(data) {
-      if(data.type == 'last') {
-        queue.action('append', [data.items]).then(updateModel);
-      } else {
-        queue.action('insertAfter', [data.items]).then(updateModel);
-      }
+    listen('queue-add-next', function(data) {
+      queue.action('insertAfter', [data.items]).then(updateModel);
     });
 
-    socket.on('play-queue', function(data) {
-      if(data.type == 'none') {
-        queue.action('stop', []).then(updateModel);
-      } else {
-        queue.action('play', [data.id, 0]).then(updateModel);
-      }
+    listen('queue-add-last', function(data) {
+      queue.action('append', [data.items]).then(updateModel);
     });
 
-    socket.on('remove-queue', function(data) {
-      queue.action('remove', [data.id]).then(updateModel);
+    listen('queue-play', function(item) {
+      queue.action('play', [item.itemId, 0, null]).then(updateModel);
+    });
+
+    listen('queue-stop', function() {
+      queue.action('stop', []).then(updateModel);
+    });
+
+    listen('queue-remove', function(item) {
+      queue.action('remove', [item.itemId]).then(updateModel);
     });
   }
 ]);

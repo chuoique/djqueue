@@ -1,17 +1,17 @@
 <p id="search-button">
   <a class="search-link navigate" ng-click="list.navigateSearch()"><i class="fa fa-search"></i></a>
-  <button ng-click="list.prevTrack()"><i class="fa fa-step-backward"></i></button>
-  <button ng-click="list.nextTrack()"><i class="fa fa-step-forward"></i></button>
+  <button ng-click="list.prev()"><i class="fa fa-step-backward"></i></button>
+  <button ng-click="list.next()"><i class="fa fa-step-forward"></i></button>
 </p>
 
 <ul id="queue">
-  <li ng-repeat="item in queue.model.queue" ng-class="{playing: queue.model.nowPlayingId == item.id}">
-    <p class="username">{{item.username}}</p>
+  <li ng-repeat="item in queue.model.list" ng-class="{playing: queue.model.playingItemId == item.itemId}">
+    <p class="username">{{queue.model.users[item.userId] ? queue.model.users[item.userId].name : ''}}</p>
     <p class="queue-name">{{item.name}}</p>
     <p class="queue-buttons" style="display:block">
-      <button ng-click="list.playQueue('here', item)"><i class="fa fa-play"></i></button>
-      <button ng-click="list.playQueue('next', item)"><i class="fa fa-indent"></i></button>
-      <button ng-click="list.removeQueue(item)"><i class="fa fa-times"></i></button>
+      <button ng-click="list.play(item)"><i class="fa fa-play"></i></button>
+      <button ng-click="list.move(item)"><i class="fa fa-indent"></i></button>
+      <button ng-click="list.remove(item)"><i class="fa fa-times"></i></button>
     </p>
     <p class="queue-artist">
       <span class="icon"><i class="fa {{item.icon}}"></i></span>

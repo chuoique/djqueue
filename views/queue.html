@@ -11,7 +11,7 @@
     <script>_q = <%- bootstrap %>;</script>
     <script>
       if(!localStorage['queueUsername']) {
-        window.location.href = _q.host + _q.id;
+        window.location.href = _q.host + _q.queueId;
       }
     </script>
   </head>
@@ -24,8 +24,9 @@
       };
       function googleApiClientReady() {
         gapi.client.load('youtube', 'v3', function() {
-          gapi.client.setApiKey(_q.googleKey);
+          gapi.client.setApiKey(_q.apiKeys.google);
           _g.loaded = true;
+          _g.gapi = gapi;
           if(_g.onload) {
             _g.onload();
           }
@@ -46,5 +47,6 @@
     <script src="/js/util/queue-controller.js"></script>
     <script src="/js/util/queue-service.js"></script>
     <script src="/js/util/socket-factory.js"></script>
+    <script src="/js/util/bootstrap-value.js"></script>
   </body>
 </html>
