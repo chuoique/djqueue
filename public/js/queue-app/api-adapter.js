@@ -1,39 +1,6 @@
 angular.module('queueApiAdapter', [])
 .factory('apiAdapter', ['$q', '$http', function($q, $http) {
 
-  // visible apis on the search page
-  var visible = [{
-    name: 'Song',
-    apis: [{
-      api: 'soundcloud',
-      type: 'song'
-    }, {
-      api: 'youtube',
-      type: 'video'
-    }, {
-      api: 'spotify',
-      type: 'song'
-    }]
-  }, {
-    name: 'Playlist',
-    apis: [{
-      api: 'soundcloud',
-      type: 'playlist'
-    }, {
-      api: 'youtube',
-      type: 'playlist'
-    }, {
-      api: 'spotify',
-      type: 'playlist'
-    }]
-  }, {
-    name: 'Album',
-    apis: [{
-      api: 'spotify',
-      type: 'album'
-    }]
-  }];
-
   // common interface for different external apis
   // interface format
   /*{
@@ -115,9 +82,9 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 offset: 0
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.tracks.items.map(function(value) {
+                items: response.data.tracks.items.map(function(value) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
@@ -125,7 +92,7 @@ angular.module('queueApiAdapter', [])
                     length: value.duration_ms
                   };
                 }),
-                nextPage: data.tracks.next
+                nextPage: response.data.tracks.next
               }
             });
           }
@@ -142,9 +109,9 @@ angular.module('queueApiAdapter', [])
               }, headers: {
                 'Authorization': 'Bearer ' + localStorage['spotifyToken']
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.items.map(function(value) {
+                items: response.data.items.map(function(value) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
@@ -152,7 +119,7 @@ angular.module('queueApiAdapter', [])
                     length: value.duration_ms
                   };
                 }),
-                nextPage: data.next
+                nextPage: response.data.next
               }
             });
           }
@@ -167,9 +134,9 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 offset: 0
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.items.map(function(value) {
+                items: response.data.items.map(function(value) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
@@ -177,7 +144,7 @@ angular.module('queueApiAdapter', [])
                     length: value.duration_ms
                   };
                 }),
-                nextPage: data.next
+                nextPage: response.data.next
               }
             });
           }
@@ -212,16 +179,16 @@ angular.module('queueApiAdapter', [])
                 headers: {
                   'Authorization': 'Bearer ' + localStorage['spotifyToken']
                 }
-              }).then(function(data) {
-                localStorage['spotifyUserId'] = data.id;
-                return data.id;
+              }).then(function(response) {
+                localStorage['spotifyUserId'] = response.data.id;
+                return response.data.id;
               });
             } else {
               defer = $q.resolve(localStorage['spotifyUserId']);
             }
 
             // get user's playlists
-            return defer.then(function(userId) {
+            return defer.promise.then(function(userId) {
               return $http({
                 url: page || 'https://api.spotify.com/v1/users/' + userId + '/playlists',
                 method: 'GET',
@@ -233,15 +200,15 @@ angular.module('queueApiAdapter', [])
                 headers: {
                   'Authorization': 'Bearer ' + localStorage['spotifyToken']
                 }
-              }).then(function(data) {
+              }).then(function(response) {
                 return {
-                  items: data.items.map(function(value) {
+                  items: response.data.items.map(function(value) {
                     return {
                       name: value.name,
                       view: value.tracks.href
                     };
                   }),
-                  nextPage: data.next
+                  nextPage: response.data.next
                 }
               });
             });
@@ -260,15 +227,15 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 offset: 0
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.albums.items.map(function(value) {
+                items: response.data.albums.items.map(function(value) {
                   return {
                     name: value.name,
                     view: value.href + '/tracks'
                   };
                 }),
-                nextPage: data.albums.next
+                nextPage: response.data.albums.next
               }
             });
           }
@@ -293,9 +260,9 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 linked_partitioning: 1
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.collection.map(function(value) {
+                items: response.data.collection.map(function(value) {
                   return {
                     name: value.title,
                     artist: value.user.username,
@@ -303,7 +270,7 @@ angular.module('queueApiAdapter', [])
                     length: value.duration
                   };
                 }),
-                nextPage: data.next_href
+                nextPage: response.data.next_href
               }
             });
           }
@@ -319,9 +286,9 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 linked_partitioning: 1
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.collection.map(function(value) {
+                items: response.data.collection.map(function(value) {
                   return {
                     name: value.title,
                     artist: value.user.username,
@@ -329,7 +296,7 @@ angular.module('queueApiAdapter', [])
                     length: value.duration
                   };
                 }),
-                nextPage: data.next_href
+                nextPage: response.data.next_href
               }
             });
           }
@@ -347,16 +314,16 @@ angular.module('queueApiAdapter', [])
                 limit: 50,
                 linked_partitioning: 1
               }
-            }).then(function(data) {
+            }).then(function(response) {
               return {
-                items: data.collection.map(function(value) {
+                items: response.data.collection.map(function(value) {
                   return {
                     name: value.title,
                     artist: value.user.username,
                     view: value.uri + '/tracks'
                   };
                 }),
-                nextPage: data.next_href
+                nextPage: response.data.next_href
               }
             });
           }
@@ -373,124 +340,109 @@ angular.module('queueApiAdapter', [])
 
         'video': {
           get: function(text, view, page, key) {
-            if(!gapi.client.youtube) {
-              return $q.reject();
-            }
-
-            var request = gapi.client.youtube.search.list({
-              q: text,
-              part: 'snippet',
-              type: 'video',
-              maxResults: 50,
-              pageToken: page
-            });
-
-            return request.execute().then(function(data) {
+            return loadYoutube().then(function() {
+              return gapi.client.youtube.search.list({
+                q: text,
+                part: 'snippet',
+                type: 'video',
+                maxResults: 50,
+                pageToken: page
+              });
+            }).then(function(response) {
               return {
-                items: data.items.map(function(value) {
+                items: response.result.items.map(function(value) {
                   return {
                     name: value.snippet.title,
                     artist: value.snippet.channelTitle,
                     _youtubeId: value.id.videoId
                   };
                 }),
-                nextPage: response.nextPageToken
+                nextPage: response.result.nextPageToken
               };
             });
           },
 
           add: function(item) {
-            var request = gapi.client.youtube.videos.list({
-              part: 'contentDetails',
-              id: item._youtubeId
-            });
-
-            return request.execute().then(function(data) {
+            return loadYoutube().then(function() {
+              return gapi.client.youtube.videos.list({
+                part: 'contentDetails',
+                id: item._youtubeId
+              });
+            }).then(function(response) {
               return {
                 name: item.name,
-                artist: item.artist
+                artist: item.artist,
                 url: "https://www.youtube.com/watch?v=" + item._youtubeId,
-                length: youtubeToMilliseconds(data.items[0].contentDetails.duration)
+                length: youtubeToMilliseconds(response.result.items[0].contentDetails.duration)
               };
             });
-
-            return defer;
           }
         },
 
         'playlist-item': {
           get: function(text, view, page, key) {
-            if(!gapi.client.youtube) {
-              return $q.reject();
-            }
-
-            var request = gapi.client.youtube.search.list({
-              part: 'snippet',
-              playlistId: view,
-              maxResults: 50,
-              pageToken: page
-            });
-
-            return request.execute().then(function(data) {
+            return loadYoutube().then(function() {
+              return gapi.client.youtube.search.list({
+                part: 'snippet',
+                playlistId: view,
+                maxResults: 50,
+                pageToken: page
+              });
+            }).then(function(response) {
               return {
-                items: data.items.filter(function(value) {
+                items: response.result.items.filter(function(value) {
                   return value.snippet.resourceId.kind == 'youtube#video';
                 }).map(function(value) {
                   return {
                     name: value.snippet.title,
-                    artist: value.snippet.channelTitle
+                    artist: value.snippet.channelTitle,
                     _youtubeId: value.snippet.resourceId.videoId,
                   };
                 }),
-                nextPage: response.nextPageToken
+                nextPage: response.result.nextPageToken
               };
             });
           },
 
           add: function(item) {
-            var request = gapi.client.youtube.videos.list({
-              part: 'contentDetails',
-              id: item._youtubeId
-            });
-
-            return request.execute().then(function(data) {
+            return loadYoutube().then(function() {
+              return gapi.client.youtube.videos.list({
+                part: 'contentDetails',
+                id: item._youtubeId
+              });
+            }).then(function(response) {
               return {
                 name: item.name,
-                artist: item.artist
+                artist: item.artist,
                 url: "https://www.youtube.com/watch?v=" + item._youtubeId,
-                length: youtubeToMilliseconds(data.items[0].contentDetails.duration)
+                length: youtubeToMilliseconds(response.result.items[0].contentDetails.duration)
               };
             });
-
-            return defer;
           }
         },
 
         'playlist': {
-          collectionOf: 'playlist-song',
+          collectionOf: 'playlist-item',
+
           get: function(text, view, page, key) {
-            if(!gapi.client.youtube) {
-              return $q.reject();
-            }
-
-            var request = gapi.client.youtube.search.list({
-              q: text,
-              part: 'snippet',
-              type: 'playlist',
-              maxResults: 50,
-              pageToken: page
-            });
-
-            return request.execute().then(function(data) {
+            return loadYoutube().then(function() {
+              return gapi.client.youtube.search.list({
+                q: text,
+                part: 'snippet',
+                type: 'playlist',
+                maxResults: 50,
+                pageToken: page
+              });
+            }).then(function(response) {
               return {
-                items: data.items.map(function(value) {
+                items: response.result.items.map(function(value) {
                   return {
                     name: value.snippet.title,
                     artist: value.snippet.channelTitle,
-                    view: value.id.playlistId                        
+                    view: value.id.playlistId
                   };
                 }),
-                nextPage: response.nextPageToken
+                nextPage: response.result.nextPageToken
               };
             });
           }
@@ -498,6 +450,46 @@ angular.module('queueApiAdapter', [])
       }
     }
   };
+
+  // visible apis on the search page
+  var visible = [{
+    name: 'Song',
+    apis: [{
+      name: 'soundcloud',
+      type: 'song',
+      icon: adapters['soundcloud'].icon
+    }, {
+      name: 'youtube',
+      type: 'video',
+      icon: adapters['youtube'].icon
+    }, {
+      name: 'spotify',
+      type: 'song',
+      icon: adapters['spotify'].icon
+    }]
+  }, {
+    name: 'Playlist',
+    apis: [{
+      name: 'soundcloud',
+      type: 'playlist',
+      icon: adapters['soundcloud'].icon
+    }, {
+      name: 'youtube',
+      type: 'playlist',
+      icon: adapters['youtube'].icon
+    }, {
+      name: 'spotify',
+      type: 'playlist',
+      icon: adapters['spotify'].icon
+    }]
+  }, {
+    name: 'Album',
+    apis: [{
+      name: 'spotify',
+      type: 'album',
+      icon: adapters['spotify'].icon
+    }]
+  }];
 
   // http://stackoverflow.com/a/22149575, quick hack to avoid loading moment.js or another time library
   var youtubeToMilliseconds = function(duration) {
@@ -531,7 +523,24 @@ angular.module('queueApiAdapter', [])
       duration = duration + parseInt(a[0]);
     }
     return duration * 1000;
-  }
+  };
+
+  // function that returns a resolved promise if gapi client has loaded,
+  // or a promise that resolves when the gapi client loads
+  var youtubeDefer = null;
+  var loadYoutube = function() {
+    if(_g.loaded) {
+      return $q.resolve();
+    } else {
+      if(!youtubeDefer) {
+        youtubeDefer = $q.defer();
+        _g.onload = function() {
+          youtubeDefer.resolve();
+        };
+      }
+      return youtubeDefer.promise;
+    }
+  };
 
   return {
     adapters: adapters,

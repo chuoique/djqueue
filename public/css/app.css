@@ -39,7 +39,8 @@ label {
     font-size: 24px;
 }
 
-button {
+button,
+.navigate {
     cursor: pointer;
 }
 

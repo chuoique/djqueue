@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/app.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.png">
     <title>djQueue</title>
     <script>_q = <%- bootstrap %>;</script>
     <script>
@@ -17,11 +18,18 @@
   <body ng-controller="QueueController as queue">
     <div ng-view></div>
     <script>
+      _g = {
+        loaded: false,
+        onload: null
+      };
       function googleApiClientReady() {
-        gapi.client.load('youtube', 'v3', onYouTubeApiLoad);
-      }
-      function onYouTubeApiLoad() {
-        gapi.client.setApiKey(_q.googleKey);
+        gapi.client.load('youtube', 'v3', function() {
+          gapi.client.setApiKey(_q.googleKey);
+          _g.loaded = true;
+          if(_g.onload) {
+            _g.onload();
+          }
+        });
       }
     </script>
     <script src="https://apis.google.com/js/client.js?onload=googleApiClientReady"></script>
@@ -34,6 +42,7 @@
     <script src="/js/queue-app/app.js"></script>
     <script src="/js/queue-app/list-controller.js"></script>
     <script src="/js/queue-app/search-controller.js"></script>
+    <script src="/js/queue-app/api-adapter.js"></script>
     <script src="/js/util/queue-controller.js"></script>
     <script src="/js/util/queue-service.js"></script>
     <script src="/js/util/socket-factory.js"></script>
