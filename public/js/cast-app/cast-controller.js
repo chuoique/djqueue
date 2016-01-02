@@ -1,109 +1,49 @@
-var module = angular.module('moduleControllerCast', [
-]);
+angular.module('castCast', ['utilBootstrap', 'utilSocket'])
+.controller('CastController', ['$scope', '$timeout', '_q', 'socketFactory',
+  function($scope, $timeout, _q, socket) {
+    var controller = this;
 
-var firstConnect = true;
+    var player = window.open("about:blank", 'window_name', 'height=200,width=200');
+    var playerCancel = window.open("about:blank", 'window_name2', 'height=200,width=200');
 
-module.controller('controllerCast', ['$scope', '$timeout', '$http',
-  function($scope, $timeout, $http) {
-    $scope.player = window.open("about:blank", 'window_name', 'height=200,width=200');
-    $scope.playerCancel = window.open("about:blank", 'window_name2', 'height=200,width=200');
-    $scope._q = _q;
+    controller.shareUrl = _q.host + _q.queueId;
 
-    $scope.openUrl = function(url) {
+    var openUrl = function(url) {
+      // this stops the spotify client from playing by loading a hardcoded blank playlist
       if(url.indexOf('open.spotify.com') == -1) {
-        $scope.playerCancel.location.href = "https://open.spotify.com/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
+        playerCancel.location.href = "https://open.spotify.com/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
       }
-      $scope.player.location.href = url;
+      player.location.href = url;
     }
 
-    $scope.socket = io(_q.host, {
-      query: "queueId="+encodeURIComponent(_q.id)
-    });
-    $scope.queue = _q.queue;
-    $scope.users = _q.users;
-    $scope.user = {username: ""};
-    $scope.nowPlayingId = _q.nowPlayingId;
-    $scope.songsLeft = function() {
+    // number of songs left in the queue after the currently playing one
+    controller.itemsLeft = function(list, playingItemId) {
       var index = -1;
-      $.each($scope.queue, function(i, item) {
-        if(item.id == $scope.nowPlayingId) {
+      list.forEach(function(item, i) {
+        if(item.itemId == playingItemId) {
           index = i;
         }
       });
-      return $scope.queue.length - index - 1;
+      return list.length - index - 1;
     };
-    $scope.socket.on('queue-reload', function(data) {
-        $scope.queue = data.queue;
-        $scope.users = data.users;
-        $scope.nowPlayingId = data.nowPlayingId;
-        $scope.$apply();
-    });
-    $scope.reload = function() {
-      $scope.socket.emit('request-reload', {});
-    }
-    $scope.socket.on('connect', function() {
-      if(firstConnect){
-        firstConnect = false;
-      } else {
-        $scope.reload();
-      }
-    });
-    $scope.socket.on('username', function(user) {
-      $scope.users[user.id] = user;
-      $scope.$apply();
-    });
-    $scope.socket.on('user-disconnect', function(id) {
-      delete $scope.users[id];
-      $scope.$apply();
-    });
-    $scope.socket.on('add-queue', function(value) {
 
-      var index = $scope.queue.length - 1;
-      $.each($scope.queue, function(i, item) {
-        if(item.id == $scope.nowPlayingId) {
-          index = i;
-        }
+    // unsubscribe from all socket events when controller is destroyed.
+    var listenerRemovers = [];
+    var listen = function(eventName, callback) {
+      listenerRemovers.push(socket.on(eventName, callback));
+    };
+    $scope.$on('$destroy', function() {
+      listenerRemovers.forEach(function(off) {
+        off();
       });
-      
-      if(value.type == 'now') {
-        Array.prototype.splice.apply($scope.queue, [index + 1, 0].concat(value.items));
-      } else if(value.type == 'next') {
-        Array.prototype.splice.apply($scope.queue, [index + 1, 0].concat(value.items));
-      } else if(value.type == 'last') {
-        Array.prototype.splice.apply($scope.queue, [$scope.queue.length, 0].concat(value.items));
-      }
-
-      $scope.$apply();
-    });
-    $scope.socket.on('play-queue', function(value) {
-      if(value.type == 'none') {
-        $scope.nowPlayingId = "";
-        $scope.openUrl("about:blank");
-      } else {
-        $scope.nowPlayingId = value.id;
-        $scope.openUrl(value.url);
-      }
-      $scope.$apply();
-      $
-    });
-    $scope.socket.on('remove-queue', function(value) {
-      var index = -1;
-      $.each($scope.queue, function(i, item) {
-        if(item.id == value.id) {
-          index = i;
-        }
-      });
-      if(index != -1) {
-        $scope.queue.splice(index, 1);
-      }
-      $scope.$apply();
     });
 
-    $scope.socket.on('queue-pong', function() {
-      console.log('pong');
+    listen('queue-play', function(item) {
+      openUrl(item.url);
     });
-    setInterval(function() {
-      $scope.socket.emit('queue-ping', {num: Math.round(Math.random()*100)});
-    }, 90000);
+
+    listen('queue-stop', function() {
+      openUrl("about:blank");
+    });
   }
 ]);

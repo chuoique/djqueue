@@ -32,7 +32,7 @@ angular.module('queueList', ['utilSocket'])
     };
 
     controller.prev = function() {
-      socket.emit('queue-play-index', {index: 1});
+      socket.emit('queue-play-index', {index: -1});
     };
   }
 ]);

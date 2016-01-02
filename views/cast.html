@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="castApp">
+<html ng-app="cast">
   <head>
     <meta charset="utf-8">
     <base href="<%= base %>">
@@ -12,17 +12,19 @@
     _q = <%- bootstrap %>
     </script>
   </head>
-  <body>
-
-    <div ng-view>
-    </div>
+  <body ng-controller="QueueController as queue">
+    <div ng-view></div>
 
     <script src="/js/lib/socket.io.js"></script>
     <script src="/js/lib/jquery-1.11.3.min.js"></script>
     <script src="/js/lib/angular.min.js"></script>
     <script src="/js/lib/angular-route.min.js"></script>
 
-    <script src="/js/cast/app.js"></script>
-    <script src="/js/cast/cast-controller.js"></script>
+    <script src="/js/cast-app/app.js"></script>
+    <script src="/js/cast-app/cast-controller.js"></script>
+    <script src="/js/util/queue-controller.js"></script>
+    <script src="/js/util/queue-service.js"></script>
+    <script src="/js/util/socket-factory.js"></script>
+    <script src="/js/util/bootstrap-value.js"></script>
   </body>
 </html>

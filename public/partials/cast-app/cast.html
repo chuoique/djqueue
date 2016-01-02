@@ -1,28 +1,27 @@
-
 <div id="cast-header">
-    <p id="cast-url">manage queue on your phone at<br>{{_q.host}}{{_q.id}}</p>
-    <p id="cast-users"><span ng-repeat="user in users">{{user.username}}</span></p>
+  <p id="cast-url">manage queue on your phone at<br>{{cast.shareUrl}}</p>
+  <p id="cast-users"><span ng-repeat="user in queue.model.users">{{user.name}}</span></p>
 </div>
 
 <ul id="queue" class="cast-queue">
-    <li ng-repeat="(index, item) in queue" ng-if="nowPlayingId == item.id || (index - 1 >= 0 && queue[index - 1].id == nowPlayingId)">
+  <li ng-repeat="item in queue.model.list" ng-if="queue.model.playingItemId == item.itemId || ($index - 1 >= 0 && queue.model.list[$index - 1].itemId == queue.model.playingItemId)">
+    <p class="username">{{queue.model.users[item.userId] ? queue.model.users[item.userId].name : ''}}</p>
 
-        <p class="username">{{item.username}}</p>
+    <p class="queue-name"><span ng-if="queue.model.playingItemId != item.itemId" class="icon no-border"><i class="fa fa-indent"></i></span><span ng-if="queue.model.playingItemId == item.itemId" class="icon no-border"><i class="fa fa-play"></i></span>{{item.name}}</p>
 
-        <p class="queue-name"><span ng-if="nowPlayingId != item.id" class="icon no-border"><i class="fa fa-indent"></i></span><span ng-if="nowPlayingId == item.id" class="icon no-border"><i class="fa fa-play"></i></span>{{item.name}}</p>
+    <span class="icon right"><i class="fa {{item.icon}}"></i></span>
 
-        <span class="icon right"><i class="fa {{item.icon}}"></i></span>
-        
-        <p class="queue-artist"><span class="artist">{{item.artist}}</span></p>
-    </li>
-    <li class="end">
-        <p class="item-title">
-            queue end
-        </p>
-    </li>
+    <p class="queue-artist"><span class="artist">{{item.artist}}</span></p>
+  </li>
+
+  <li class="end">
+    <p class="item-title">
+      queue end
+    </p>
+  </li>
 </ul>
 
 <div id="cast-count">
-    <p class="item-title"><span class="icon no-border"><i class="fa fa-angle-double-down"></i></span></p>
-    <p class="count">{{songsLeft()}}</p>
+  <p class="item-title"><span class="icon no-border"><i class="fa fa-angle-double-down"></i></span></p>
+  <p class="count">{{cast.itemsLeft(queue.model.list, queue.model.playingItemId)}}</p>
 </div>

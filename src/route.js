@@ -7,7 +7,7 @@ var setup = function(app, queues, config, apiKeys) {
   };
 
   // returns a handler that will render all queue data to the specified template
-  var renderQueue = function(template) {
+  var renderQueue = function(template, base) {
     return function(req, res, next) {
       queues.getQueue(req.queueId, function(err, queue) {
         if(err) {
@@ -20,11 +20,12 @@ var setup = function(app, queues, config, apiKeys) {
           host: config.host,
           apiKeys: apiKeys,
           queueId: req.queueId,
+          base: base,
           queue: queue.toJSON()
         });
 
         // <base> tag for HTML5 pushState
-        res.locals.base = config.host + req.queueId + '/queue/';
+        res.locals.base = config.host + req.queueId + '/' + base + '/';
 
         res.render(template);
       });
@@ -70,18 +71,18 @@ var setup = function(app, queues, config, apiKeys) {
   });
 
   // for the casting device
-  app.get('/:queueId/cast', renderQueue('cast.html'));
+  app.get('/:queueId/cast', renderQueue('cast.html', 'cast'));
 
   // for the queue management devices
 
   // login page where queue management devices can enter their name
-  app.get('/:queueId', renderQueue('login.html'));
+  app.get('/:queueId', renderQueue('login.html', 'queue'));
 
   // root of the queue management front-end app
-  app.get('/:queueId/queue', renderQueue('queue.html'));
+  app.get('/:queueId/queue', renderQueue('queue.html', 'queue'));
 
   // /search is handled by HTML5 pushState, but we still need to serve a page
-  app.get('/:queueId/queue/search', renderQueue('queue.html'));
+  app.get('/:queueId/queue/search', renderQueue('queue.html', 'queue'));
 
 
   // 404 handler

@@ -7,7 +7,7 @@ var setup = function(io, queues, config, apiKeys) {
   // validate new connections before letting them connect
   io.use(function(socket, next) {
     // verify usernames for queue management devices
-    if(socket.handshake.query.queueIsUser && !socket.handshake.query.queueUsername) {
+    if(socket.handshake.query.queueIsUser == '1' && !socket.handshake.query.queueUsername) {
       next(new Error('bad username'));
       return;
     }
@@ -22,6 +22,13 @@ var setup = function(io, queues, config, apiKeys) {
   io.on('connection', function(socket) {
     var queueId = socket.handshake.query.queueId;
 
+    // if it's just a casting device, it only needs to receive messages for this queue
+    if(socket.handshake.query.queueIsUser != '1') {
+      socket.join(queueId);
+      return;
+    }
+
+    // otherwise, add the user
     async.waterfall([
       // get the queue
       function(done) {
@@ -31,7 +38,7 @@ var setup = function(io, queues, config, apiKeys) {
       // add the user
       function(queue, done) {
         var user = {
-          name: socket.handshake.query.queryUsername
+          name: socket.handshake.query.queueUsername
         };
         queue.addUser(user, function(err, user) {
           done(err, queue, user);
@@ -171,7 +178,7 @@ var addListeners = function(io, queues, socket, queueId, userId) {
   }));
 
   // play the next or prev item from the current item (with -1 or 1 for index)
-  socket.on('play-index', createHandler(function(queue, data) {
+  socket.on('queue-play-index', createHandler(function(queue, data) {
     return [function(done) {
       queue.play(null, data.index, emitPlay);
     }];
