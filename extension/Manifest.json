@@ -5,18 +5,15 @@
     "permissions": [
         "https://open.spotify.com/*", "https://www.youtube.com/*"
     ],
-    "browser_action": {
-        "default_icon": "icon.png"
-    },
-
     "content_scripts": [{
         "matches": ["https://open.spotify.com/*"],
-        "js": ["jquery-1.11.2.min.js", "spotify.js"],
+        "js": ["spotify.js"],
         "run_at": "document_end"
     }, {
         "matches": ["https://www.youtube.com/*"],
-        "js": ["jquery-1.11.2.min.js", "youtube.js"],
+        "js": ["jquery-1.11.3.min.js", "youtube.js"],
         "run_at": "document_end"
-    }], 
+    }],
+    "web_accessible_resources": ["/spotify-inject.js"],
     "manifest_version":2
 }

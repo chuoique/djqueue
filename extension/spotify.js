@@ -1,6 +1,8 @@
-jQuery.noConflict();
-jQuery(document).ready(function(){
-    setTimeout(function() {
-        jQuery('#item-action').eq(0).click();
-    }, 2500);
-});
+function injectScript(file, node) {
+  var th = document.getElementsByTagName(node)[0];
+  var s = document.createElement('script');
+  s.setAttribute('type', 'text/javascript');
+  s.setAttribute('src', file);
+  th.appendChild(s);
+}
+injectScript(chrome.extension.getURL('/spotify-inject.js'), 'body');
