@@ -48,7 +48,10 @@ angular.module('queueSearch', ['utilSocket', 'queueApiAdapter'])
 
     // perform the specified search
     controller.search = function(api, type) {
-      if(controller.searchText || controller.currentApi.ignoreText) {
+      var ignoreText = apis.adapters[api] &&
+          apis.adapters[api].itemTypes[type] &&
+          apis.adapters[api].itemTypes[type].ignoreText;
+      if(controller.searchText || ignoreText) {
         $location.search({
           a: api,
           t: type,

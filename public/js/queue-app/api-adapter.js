@@ -89,7 +89,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify,
+                    url: value.external_urls.spotify + '?autoplay=true',
                     length: value.duration_ms
                   };
                 }),
@@ -114,10 +114,10 @@ function($q, $http, _q, _g) {
               return {
                 items: response.data.items.map(function(value) {
                   return {
-                    name: value.name,
-                    artist: value.artists[0].name,
-                    url: value.external_urls.spotify,
-                    length: value.duration_ms
+                    name: value.track.name,
+                    artist: value.track.artists[0].name,
+                    url: value.track.external_urls.spotify + '?autoplay=true',
+                    length: value.track.duration_ms
                   };
                 }),
                 nextPage: response.data.next
@@ -141,7 +141,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify,
+                    url: value.external_urls.spotify + '?autoplay=true',
                     length: value.duration_ms
                   };
                 }),
@@ -171,9 +171,9 @@ function($q, $http, _q, _g) {
             }
 
             // get user id
-            var defer;
+            var promise;
             if(!localStorage['spotifyUserId']) {
-              defer = $http({
+              promise = $http({
                 url: 'https://api.spotify.com/v1/me',
                 method: 'GET',
                 params: {},
@@ -185,11 +185,11 @@ function($q, $http, _q, _g) {
                 return response.data.id;
               });
             } else {
-              defer = $q.resolve(localStorage['spotifyUserId']);
+              promise = $q.resolve(localStorage['spotifyUserId']);
             }
 
             // get user's playlists
-            return defer.promise.then(function(userId) {
+            return promise.then(function(userId) {
               return $http({
                 url: page || 'https://api.spotify.com/v1/users/' + userId + '/playlists',
                 method: 'GET',
@@ -383,7 +383,7 @@ function($q, $http, _q, _g) {
         'playlist-item': {
           get: function(text, view, page, key) {
             return loadYoutube().then(function() {
-              return _g.gapi.client.youtube.search.list({
+              return _g.gapi.client.youtube.playlistItems.list({
                 part: 'snippet',
                 playlistId: view,
                 maxResults: 50,

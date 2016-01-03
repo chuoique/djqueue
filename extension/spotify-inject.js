@@ -14,9 +14,10 @@
         if(data.playing && data.playing === true) {
           setTimeout(function() {
             document.querySelector('#item-action').click();
-            window.XMLHttpRequest.prototype.open = proxied;
           }, 0);
         }
+        
+        window.XMLHttpRequest.prototype.open = proxied;
       };
     }
     return proxied.apply(this, newArgs);
