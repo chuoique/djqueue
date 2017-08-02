@@ -8,12 +8,16 @@ angular.module('castCast', ['utilBootstrap', 'utilSocket'])
 
     controller.shareUrl = _q.host + _q.queueId;
 
+    var lastUrl = null;
     var openUrl = function(url) {
-      // this stops the spotify client from playing by loading a hardcoded blank playlist
-      if(url.indexOf('open.spotify.com') == -1) {
-        playerCancel.location.href = "https://open.spotify.com/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
+      // this stops the spotify client from playing by telling it pause the
+      // last played song.
+      if(url.indexOf('open.spotify.com') === -1 && lastUrl &&
+          lastUrl.indexOf('open.spotify.com') !== -1) {
+        playerCancel.location.href = lastUrl + '#pause';
       }
       player.location.href = url;
+      lastUrl = url;
     }
 
     // number of songs left in the queue after the currently playing one

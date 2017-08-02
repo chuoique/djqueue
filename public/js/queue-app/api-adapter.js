@@ -74,6 +74,13 @@ function($q, $http, _q, _g) {
 
         'song': {
           get: function(text, view, page, key) {
+
+            // get auth token
+            var spotifyToken = getSpotifyToken(key);
+            if (!spotifyToken) {
+              return;
+            }
+
             return $http({
               method: 'GET',
               url: page || 'https://api.spotify.com/v1/search',
@@ -82,6 +89,9 @@ function($q, $http, _q, _g) {
                 q: text,
                 limit: 50,
                 offset: 0
+              },
+              headers: {
+                'Authorization': 'Bearer ' + spotifyToken
               }
             }).then(function(response) {
               return {
@@ -89,7 +99,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.id,
                     length: value.duration_ms
                   };
                 }),
@@ -101,14 +111,22 @@ function($q, $http, _q, _g) {
 
         'playlist-song': {
           get: function(text, view, page, key) {
+
+            // get auth token
+            var spotifyToken = getSpotifyToken(key);
+            if (!spotifyToken) {
+              return;
+            }
+
             return $http({
               method: 'GET',
               url: page || view,
               params: page ? undefined : {
                 limit: 50,
                 offset: 0
-              }, headers: {
-                'Authorization': 'Bearer ' + localStorage['spotifyToken']
+              },
+              headers: {
+                'Authorization': 'Bearer ' + spotifyToken
               }
             }).then(function(response) {
               return {
@@ -116,7 +134,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.track.name,
                     artist: value.track.artists[0].name,
-                    url: value.track.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.track.id,
                     length: value.track.duration_ms
                   };
                 }),
@@ -128,12 +146,22 @@ function($q, $http, _q, _g) {
 
         'album-song': {
           get: function(text, view, page, key) {
+
+            // get auth token
+            var spotifyToken = getSpotifyToken(key);
+            if (!spotifyToken) {
+              return;
+            }
+
             return $http({
               method: 'GET',
               url: page || view,
               params: page ? undefined : {
                 limit: 50,
                 offset: 0
+              },
+              headers: {
+                'Authorization': 'Bearer ' + spotifyToken
               }
             }).then(function(response) {
               return {
@@ -141,7 +169,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.id,
                     length: value.duration_ms
                   };
                 }),
@@ -156,17 +184,9 @@ function($q, $http, _q, _g) {
           ignoreText: true, // allow spotify login if search box is empty
           get: function(text, view, page, key) {
 
-            // get a token
-            if(!localStorage['spotifyToken'] || new Date() >= Date.parse(localStorage['spotifyExpire'])) {
-              localStorage['queueId'] = _q.queueId;
-              localStorage['spotifyState'] = Math.random().toString(36).slice(2);
-
-              window.location.href = 
-               "https://accounts.spotify.com/authorize?client_id=" + encodeURIComponent(key) +
-               "&redirect_uri=" + encodeURIComponent(_q.host + "spotify") +
-               "&scope=playlist-read-private" + 
-               "&response_type=token&state=" + encodeURIComponent(localStorage['spotifyState']);
-
+            // get auth token
+            var spotifyToken = getSpotifyToken(key);
+            if (!spotifyToken) {
               return;
             }
 
@@ -178,7 +198,7 @@ function($q, $http, _q, _g) {
                 method: 'GET',
                 params: {},
                 headers: {
-                  'Authorization': 'Bearer ' + localStorage['spotifyToken']
+                  'Authorization': 'Bearer ' + spotifyToken
                 }
               }).then(function(response) {
                 localStorage['spotifyUserId'] = response.data.id;
@@ -219,6 +239,13 @@ function($q, $http, _q, _g) {
         'album': {
           collectionOf: 'album-song',
           get: function(text, view, page, key) {
+
+            // get auth token
+            var spotifyToken = getSpotifyToken(key);
+            if (!spotifyToken) {
+              return;
+            }
+
             return $http({
               method: 'GET',
               url: page || 'https://api.spotify.com/v1/search',
@@ -227,6 +254,9 @@ function($q, $http, _q, _g) {
                 q: text,
                 limit: 50,
                 offset: 0
+              },
+              headers: {
+                'Authorization': 'Bearer ' + localStorage['spotifyToken']
               }
             }).then(function(response) {
               return {
@@ -540,6 +570,23 @@ function($q, $http, _q, _g) {
         };
       }
       return youtubeDefer.promise;
+    }
+  };
+
+  var getSpotifyToken = function(key) {
+    if(!localStorage['spotifyToken'] || new Date() >= Date.parse(localStorage['spotifyExpire'])) {
+      localStorage['queueId'] = _q.queueId;
+      localStorage['spotifyState'] = Math.random().toString(36).slice(2);
+
+      window.location.href =
+       "https://accounts.spotify.com/authorize?client_id=" + encodeURIComponent(key) +
+       "&redirect_uri=" + encodeURIComponent(_q.host + "spotify") +
+       "&scope=playlist-read-private" +
+       "&response_type=token&state=" + encodeURIComponent(localStorage['spotifyState']);
+
+      return null;
+    } else {
+      return localStorage['spotifyToken'];
     }
   };
 
