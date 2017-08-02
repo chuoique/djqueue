@@ -11,7 +11,7 @@ angular.module('castCast', ['utilBootstrap', 'utilSocket'])
     var openUrl = function(url) {
       // this stops the spotify client from playing by loading a hardcoded blank playlist
       if(url.indexOf('open.spotify.com') == -1) {
-        playerCancel.location.href = "https://open.spotify.com/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
+        playerCancel.location.href = "https://open.spotify.com/embed/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
       }
       player.location.href = url;
     }

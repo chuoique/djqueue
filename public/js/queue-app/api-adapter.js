@@ -99,7 +99,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.id,
                     length: value.duration_ms
                   };
                 }),
@@ -134,7 +134,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.track.name,
                     artist: value.track.artists[0].name,
-                    url: value.track.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.track.id,
                     length: value.track.duration_ms
                   };
                 }),
@@ -169,7 +169,7 @@ function($q, $http, _q, _g) {
                   return {
                     name: value.name,
                     artist: value.artists[0].name,
-                    url: value.external_urls.spotify + '?autoplay=true',
+                    url: 'https://open.spotify.com/embed/track/' + value.id,
                     length: value.duration_ms
                   };
                 }),
