@@ -11,11 +11,22 @@
       this.onload = function() {
         onload.apply(this, [].slice.call(arguments));
 
+
         setTimeout(function() {
           if (clicked) {
             return;
           }
-          document.querySelector('#play-button').click();
+
+          // Allow pausing by loading urls ending in #pause.
+          var shouldPause = window.location.hash === '#pause';
+          var query = shouldPause ? '#play-button.playing'
+                                  : '#play-button:not(playing)';
+          var element = document.querySelector(query);
+
+          if (element) {
+            element.click();
+          }
+
           clicked = true;
         }, 0);
 
