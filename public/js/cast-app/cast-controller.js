@@ -8,12 +8,19 @@ angular.module('castCast', ['utilBootstrap', 'utilSocket'])
 
     controller.shareUrl = _q.host + _q.queueId;
 
+    var lastUrl = null;
     var openUrl = function(url) {
-      // this stops the spotify client from playing by loading a hardcoded blank playlist
-      if(url.indexOf('open.spotify.com') == -1) {
-        playerCancel.location.href = "https://open.spotify.com/embed/user/danielj41/playlist/7nFbH7n0I2AbdsghpPGn14";
+      // This stops the spotify client from playing by loading the same song in
+      // another tab. The chrome extension will automatically click the toggle
+      // button, which will cause it to pause in this case.
+      if(url.indexOf('open.spotify.com') === -1 && lastUrl &&
+          lastUrl.indexOf('open.spotify.com') !== -1) {
+        playerCancel.location.href = lastUrl;
+      } else {
+        playerCancel.location.href = "about:blank";
       }
       player.location.href = url;
+      lastUrl = url;
     }
 
     // number of songs left in the queue after the currently playing one
